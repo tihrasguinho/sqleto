@@ -446,7 +446,7 @@ packages:
     description:
       path: sqleto
       ref: master
-      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
+      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
       url: "https://github.com/tihrasguinho/sqleto.git"
     source: git
     version: "1.0.0"
@@ -455,7 +455,7 @@ packages:
     description:
       path: sqleto_annotation
       ref: master
-      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
+      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
       url: "https://github.com/tihrasguinho/sqleto.git"
     source: git
     version: "1.0.0"
@@ -464,7 +464,7 @@ packages:
     description:
       path: sqleto_generator
       ref: master
-      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
+      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
       url: "https://github.com/tihrasguinho/sqleto.git"
     source: git
     version: "1.0.0"
