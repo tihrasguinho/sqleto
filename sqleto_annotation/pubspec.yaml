@@ -1,6 +1,6 @@
 name: sqleto_annotation
-description: Annotations to use with sqleto and sqleto_generator packages.
-version: 0.0.2
+description: Annotations and helpers to use with sqleto and sqleto_generator packages.
+version: 0.0.3
 homepage: https://tihrasguinho.dev
 repository: https://github.com/tihrasguinho/sqleto
 

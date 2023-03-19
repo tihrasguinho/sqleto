@@ -5,3 +5,8 @@
 ## 0.0.2
 
 - Some few adjusts
+
+## 0.0.3
+
+- SQLetoValidators added
+- Classes organization changed
