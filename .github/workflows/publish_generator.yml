@@ -9,6 +9,6 @@ jobs:
   publish:
     permissions:
       id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish_generator.yml@v1
+    uses: dart-lang/setup-dart/.github/workflows/publish_generator.yml
     with:
       working-directory: sqleto_generator
