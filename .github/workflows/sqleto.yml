@@ -9,13 +9,6 @@ jobs:
   publish:
     permissions:
       id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Go to correct directory
-        run: cd sqleto
-      - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1
-      - name: Install dependencies
-        run: dart pub get
-      - name: Publish
-        run: dart pub publish --force
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: sqleto
