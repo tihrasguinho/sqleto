@@ -14,14 +14,14 @@ jobs:
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: sqleto_annotation
-      tags: sqleto_annotation
+      tags: sqleto_annotation-[0-9]+.[0-9]+.[0-9]+*
   sqleto_generator:
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: sqleto_generator
-      tags: sqleto_generator
+      tags: sqleto_generator-[0-9]+.[0-9]+.[0-9]+*
   sqleto:
     permissions:
       id-token: write
