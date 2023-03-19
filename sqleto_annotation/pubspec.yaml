@@ -2,6 +2,7 @@ name: sqleto_annotation
 description: Annotations to use with sqleto and sqleto_generator packages.
 version: 0.0.1
 homepage: https://tihrasguinho.dev
+repository: https://github.com/tihrasguinho/sqleto
 
 environment:
   sdk: ">=2.17.0 <3.0.0"

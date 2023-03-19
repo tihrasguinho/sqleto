@@ -1,0 +1,12 @@
+name: Auto publish sqleto_annotation to pub.dev
+
+on:
+  push:
+    tags:
+      - "sqleto_annotation-[0-9]+.[0-9]+.[0-9]+*"
+
+jobs:
+  publish:
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml
+    with:
+      working-directory: sqleto_annotation
