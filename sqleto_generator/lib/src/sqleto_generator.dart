@@ -1,26 +1,25 @@
-// ignore_for_file: depend_on_referenced_packages, unused_import, implementation_imports
 import 'package:analyzer/dart/element/element.dart';
-import 'package:build/src/builder/build_step.dart';
+import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
-import 'package:sqleto/sqleto.dart';
+import 'package:sqleto_annotation/sqleto_annotation.dart';
 
 class SQLetoGenerator extends GeneratorForAnnotation<Table> {
   @override
   String generateForAnnotatedElement(Element element, ConstantReader annotation, BuildStep buildStep) {
     final buffer = StringBuffer();
 
-    if (element is! ClassElement) throw InvalidSchemaException('Its not a valid class!');
+    if (element is! ClassElement) throw Exception('Its not a valid class!');
 
     final name = element.displayName;
 
-    if (!element.isAbstract) throw InvalidSchemaException('Its given class is not an abstract class!');
+    if (!element.isAbstract) throw Exception('Its given class is not an abstract class!');
 
     final className = '${name}Schema';
 
     final tableName = element.metadata.first.computeConstantValue()?.getField('name')?.toStringValue();
 
-    if (tableName == null) throw InvalidSchemaException('Missing table_name on @Table() annotation!');
+    if (tableName == null) throw Exception('Missing table_name on @Table() annotation!');
 
     final fields = element.fields;
 
@@ -175,7 +174,7 @@ class SQLetoGenerator extends GeneratorForAnnotation<Table> {
       case 'DateTime':
         return 'DateTime.now()';
       default:
-        throw GenericException('The dart type $dartType is not supported yet!');
+        throw Exception('The dart type $dartType is not supported yet!');
     }
   }
 }
