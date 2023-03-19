@@ -1,6 +1,6 @@
 name: sqleto_generator
-description: Code generator for use with package sqleto
-version: 0.0.1
+description: Code generator for use with package SQLeto
+version: 0.0.2
 homepage: https://tihrasguinho.dev
 repository: https://github.com/tihrasguinho/sqleto.git
 
@@ -8,7 +8,7 @@ environment:
   sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
-  sqleto_annotation: ^0.0.1
+  sqleto_annotation: ">=0.0.1 <1.0.0"
   source_gen: ">=1.0.0 <2.0.0"
   build: ">=2.0.0 <3.0.0"
   analyzer: ">=5.0.0 <6.0.0"
