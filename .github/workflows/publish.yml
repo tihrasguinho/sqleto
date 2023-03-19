@@ -1,4 +1,4 @@
-name: Auto publish sqleto_annotation to pub.dev
+name: Publish to pub.dev
 
 on:
   push:
