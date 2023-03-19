@@ -6,7 +6,7 @@ on:
       - "sqleto_generator-[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
-  publish:
+  publish_generator:
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish_generator.yml
