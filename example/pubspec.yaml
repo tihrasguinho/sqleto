@@ -7,19 +7,10 @@ environment:
   sdk: ">=2.19.4 <3.0.0"
 
 dependencies:
-  sqleto:
-    git:
-      url: https://github.com/tihrasguinho/sqleto.git
-      path: sqleto
-      ref: master
+  sqleto: ^0.0.1
 
 dev_dependencies:
-  sqleto_generator:
-    git:
-      url: https://github.com/tihrasguinho/sqleto.git
-      path: sqleto_generator
-      ref: master
-
   lints: ^2.0.0
   test: ^1.21.0
   build_runner: ^2.3.3
+  sqleto_generator: ^0.0.1

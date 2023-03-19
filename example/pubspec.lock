@@ -444,30 +444,27 @@ packages:
   sqleto:
     dependency: "direct main"
     description:
-      path: sqleto
-      ref: master
-      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
-      url: "https://github.com/tihrasguinho/sqleto.git"
-    source: git
-    version: "1.0.0"
+      name: sqleto
+      sha256: cae02d52e697de722c932c57913ebdf47a9141b7fb28f4a1e1c6c6a3b845a6bb
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   sqleto_annotation:
     dependency: transitive
     description:
-      path: sqleto_annotation
-      ref: master
-      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
-      url: "https://github.com/tihrasguinho/sqleto.git"
-    source: git
-    version: "1.0.0"
+      name: sqleto_annotation
+      sha256: "10a6d3f2cc135b21cc144b0e0124fb5a029dc7a849a17316addd92afee47a0c7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   sqleto_generator:
     dependency: "direct dev"
     description:
-      path: sqleto_generator
-      ref: master
-      resolved-ref: c3e252766b8955b714862d8a68b4d98525da2d5b
-      url: "https://github.com/tihrasguinho/sqleto.git"
-    source: git
-    version: "1.0.0"
+      name: sqleto_generator
+      sha256: eed077038be067c7e05645b7f66853e0a358e40a68ad54dd537c89d470863e1c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   stack_trace:
     dependency: transitive
     description:
