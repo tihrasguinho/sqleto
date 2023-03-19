@@ -2,18 +2,23 @@ name: example
 description: A sample command-line application.
 version: 1.0.0
 publish_to: none
-# repository: https://github.com/my_org/my_repo
 
 environment:
   sdk: ">=2.19.4 <3.0.0"
 
 dependencies:
   sqleto:
-    path: ../sqleto/
+    git:
+      url: https://github.com/tihrasguinho/sqleto.git
+      path: sqleto
+      ref: master
 
 dev_dependencies:
   sqleto_generator:
-    path: ../sqleto_generator/
+    git:
+      url: https://github.com/tihrasguinho/sqleto.git
+      path: sqleto_generator
+      ref: master
 
   lints: ^2.0.0
   test: ^1.21.0
