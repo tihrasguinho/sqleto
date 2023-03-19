@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "sqleto",
+			"name": "SQLETO"
+		},
+		{
+			"path": "sqleto_annotation",
+			"name": "ANNOTATION",
+		},
+		{
+			"path": "sqleto_generator",
+			"name": "GENERATOR"
+		},
+		{
+			"path": "example",
+			"name": "EXAMPLE"
+		}
+	],
+	"settings": {}
+}

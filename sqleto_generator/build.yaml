@@ -1,0 +1,16 @@
+targets:
+  $default:
+    builders:
+      sqleto_generator:sqletoGenerator:
+        options:
+          build_to:
+            - lib/*
+
+builders:
+  sqletoGenerator:
+    import: "package:sqleto_generator/sqleto_generator.dart"
+    builder_factories: ["sqletoGenerator"]
+    build_extensions: { ".dart": [".g.part"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen:combining_builder"]

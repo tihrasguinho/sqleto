@@ -1,0 +1,234 @@
+import 'dart:mirrors';
+
+import 'package:sqleto/sqleto.dart';
+
+class SQLetoSchemaUtils {
+  SQLetoSchemaUtils._();
+
+  static bool isValidSchema(Type T) {
+    final cm = reflectType(T);
+    return cm.isSubtypeOf(reflectType(Schema));
+  }
+
+  static String tableName(Type T) {
+    return invokeFromMap(T, {}).tableName;
+  }
+
+  static String buildSELECT(Type T, [String? whereScript]) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    return 'SELECT * FROM ${tableName(T)}${whereScript ?? ''}';
+  }
+
+  static String getPKName(Type T) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    final cm = reflectClass(T);
+
+    final base = cm.superclass!.typeArguments.first as ClassMirror;
+
+    final vms = base.declarations.values.whereType<VariableMirror>().toList();
+
+    if (vms.any((e) => _getColumnAnnotation(e).getField(#primaryKey).reflectee == true)) {
+      return vms.firstWhere((e) => _getColumnAnnotation(e).getField(#primaryKey).reflectee == true).simpleName.name;
+    } else {
+      throw InvalidSchemaException('T schema $T does not have a primary key!');
+    }
+  }
+
+  static String buildDELETE(Type T) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    return 'DELETE FROM ${tableName(T).toUpperCase()} WHERE ${getPKName(T).toUpperCase()} = @${getPKName(T)} RETURNING *';
+  }
+
+  static String buildUPDATE(Type T) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    final cm = reflectClass(T);
+
+    final base = cm.superclass!.typeArguments.first as ClassMirror;
+
+    final vms = base.declarations.values.whereType<VariableMirror>();
+
+    final builder = <String>[];
+
+    final setters = <String>[];
+
+    builder.add('UPDATE ${tableName(T).toUpperCase()} SET');
+
+    for (var vm in vms) {
+      final im = _getColumnAnnotation(vm);
+
+      if (im.getField(#defaultValue).reflectee == null) {
+        setters.add('${vm.simpleName.name} = @${vm.simpleName.name}');
+      }
+    }
+
+    builder.add(setters.join(', '));
+
+    final pkName = getPKName(T);
+
+    builder.add('WHERE $pkName = @$pkName RETURNING *');
+
+    return builder.join(' ');
+  }
+
+  static String buildINSERT(Type T) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    final builder = <String>[];
+
+    builder.add('INSERT INTO');
+
+    builder.add(tableName(T).toUpperCase());
+
+    final cm = reflectClass(T);
+
+    final base = cm.superclass!.typeArguments.first as ClassMirror;
+
+    final vms = base.declarations.values.whereType<VariableMirror>().toList();
+
+    final requiredVms = vms.where((e) => _getColumnAnnotation(e).getField(#defaultValue).reflectee == null);
+
+    builder.add('(${requiredVms.map((e) => _camelCaseToSnakeCase(e.simpleName.name).toUpperCase()).join(', ')})');
+
+    builder.add(' VALUES ');
+
+    builder.add('(${requiredVms.map((e) => _buildReferenceFieldName(e)).join(', ')}) RETURNING *');
+
+    return builder.join(' ');
+  }
+
+  static String _buildReferenceFieldName(VariableMirror vm) {
+    if (_getColumnAnnotation(vm).getField(#password).reflectee == true) {
+      return "crypt(@${vm.simpleName.name}, gen_salt('bf', 4))";
+    } else {
+      return '@${vm.simpleName.name}';
+    }
+  }
+
+  static String buildClassSCHEMA(Type T) {
+    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+
+    final cm = reflectClass(T);
+
+    final base = cm.superclass!.typeArguments.first as ClassMirror;
+
+    final vms = base.declarations.values.whereType<VariableMirror>().toList();
+
+    final buffer = StringBuffer();
+
+    buffer.writeln('CREATE TABLE IF NOT EXISTS ${tableName(T).toUpperCase()} (');
+
+    for (var i = 0; i < vms.length; i++) {
+      final vm = vms[i];
+      final comma = i + 1 == vms.length ? '' : ',';
+
+      if (_containsColumnAnnotation(vm)) {
+        buffer.writeln('  ${_fieldBuild(vm)}$comma');
+      }
+    }
+
+    buffer.writeln(');');
+
+    return buffer.toString();
+  }
+
+  static bool _containsColumnAnnotation(VariableMirror vm) {
+    return vm.metadata.any((e) => e.type.simpleName == Symbol('Column'));
+  }
+
+  static InstanceMirror _getColumnAnnotation(VariableMirror vm) {
+    return vm.metadata.firstWhere((e) => e.type.simpleName == Symbol('Column'));
+  }
+
+  static String _fieldBuild(VariableMirror vm) {
+    final instance = _getColumnAnnotation(vm);
+
+    final builder = <String>[];
+
+    final name = _camelCaseToSnakeCase(vm.simpleName.name).toUpperCase();
+
+    builder.add(name);
+
+    final type = (instance.getField(#type).reflectee as SQLetoType).name;
+
+    builder.add(type);
+
+    final primaryKey = instance.getField(#primaryKey).reflectee as bool;
+
+    if (primaryKey) builder.add('PRIMARY KEY');
+
+    final nullable = instance.getField(#nullable).reflectee as bool;
+
+    if (nullable && primaryKey) throw InvalidSchemaException('This schema has a nullable primary key!');
+
+    if (!nullable && !primaryKey) builder.add('NOT NULL');
+
+    final unique = instance.getField(#unique).reflectee as bool;
+
+    if (unique) builder.add('UNIQUE');
+
+    final defaultValue = (instance.getField(#defaultValue).reflectee as SQLetoDefaultValue?)?.command;
+
+    if (defaultValue != null) builder.add('DEFAULT $defaultValue');
+
+    final references = instance.getField(#references).reflectee as Type?;
+
+    if (references != null) {
+      final cm = reflectClass(references);
+
+      final referenceTableName = cm.metadata.first.getField(#name).reflectee.toUpperCase();
+
+      final vms = cm.declarations.values.whereType<VariableMirror>().toList();
+
+      if (vms.any((e) => e.metadata.any((e) => e.getField(#primaryKey).reflectee))) {
+        final referencePkVm = vms.firstWhere((e) => e.metadata.any((e) => e.getField(#primaryKey).reflectee));
+
+        final referencePkType = (referencePkVm.metadata.first.getField(#type).reflectee as SQLetoType).name;
+
+        if (referencePkType != type) throw Exception('O PRIMARY KEY DA CLASSE REFERENCIADA NÃO É DO MESMO TIPO DA CAMPO DA CLASSE CRIADA');
+
+        if (referencePkType != type) throw InvalidReferencedSchemaException('The referenced schema primary key type is not the same to the given Schema!');
+
+        builder.add('REFERENCES $referenceTableName (${referencePkVm.simpleName.name.toUpperCase()})');
+      } else {
+        throw InvalidReferencedSchemaException('The referenced schema does not have a primary key!');
+      }
+    }
+
+    return builder.join(' ');
+  }
+
+  static dynamic invokeFromMap(Type T, Map<String, dynamic> map) {
+    final cm = reflectClass(T);
+
+    if (cm.declarations.containsKey(#fromMap)) {
+      return cm.invoke(#fromMap, [map]).reflectee;
+    } else {
+      throw InvalidSchemaException('Its schema does not have a "fromMap" method!');
+    }
+  }
+
+  static Map<String, dynamic> invokeToMap(Schema Function() schema) {
+    final im = reflect(schema());
+
+    final cm = im.type;
+
+    if (cm.declarations.containsKey(#toMap)) {
+      return im.invoke(#toMap, []).reflectee;
+    } else {
+      throw InvalidSchemaException('Its schema does not have a "toMap" method!');
+    }
+  }
+
+  static String _camelCaseToSnakeCase(String origin) {
+    RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
+    return origin.replaceAllMapped(exp, (Match m) => ('_${m.group(0)}')).toLowerCase();
+  }
+}
+
+extension _SymbomStringExt on Symbol {
+  String get name => MirrorSystem.getName(this);
+}
