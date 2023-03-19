@@ -2,14 +2,16 @@ name: sqleto
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
 publish_to: none
-# repository: https://github.com/my_org/my_repo
 
 environment:
   sdk: ">=2.19.4 <3.0.0"
 
 dependencies:
   sqleto_annotation:
-    path: ../sqleto_annotation/
+    git:
+      url: https://github.com/tihrasguinho/sqleto.git
+      path: sqleto_annotation
+      ref: master
 
   postgres: ">=2.0.0 <3.0.0"
 
@@ -19,4 +21,7 @@ dev_dependencies:
   build_runner: ^2.3.3
 
   sqleto_generator:
-    path: ../sqleto_generator/
+    git:
+      url: https://github.com/tihrasguinho/sqleto.git
+      path: sqleto_generator
+      ref: master
