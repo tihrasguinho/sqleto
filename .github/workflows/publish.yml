@@ -5,6 +5,7 @@ on:
     tags:
       - "sqleto_annotation-[0-9]+.[0-9]+.[0-9]+*"
       - "sqleto_generator-[0-9]+.[0-9]+.[0-9]+*"
+      - "sqleto-[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
   sqleto_annotation:
@@ -13,9 +14,18 @@ jobs:
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: sqleto_annotation
+      tags: sqleto_annotation
   sqleto_generator:
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: sqleto_generator
+      tags: sqleto_generator
+  sqleto:
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: sqleto
+      tags: sqleto-[0-9]+.[0-9]+.[0-9]+*
