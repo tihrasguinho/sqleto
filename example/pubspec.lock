@@ -445,24 +445,26 @@ packages:
     dependency: "direct main"
     description:
       path: sqleto
-      ref: HEAD
-      resolved-ref: fbd945f19c151d175f31868be66d640b407c7874
+      ref: master
+      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
       url: "https://github.com/tihrasguinho/sqleto.git"
     source: git
     version: "1.0.0"
   sqleto_annotation:
     dependency: transitive
     description:
-      path: "C:\\/Users/tiago/AppData/Local/Pub/Cache/git/sqleto-fbd945f19c151d175f31868be66d640b407c7874/sqleto_annotation"
-      relative: true
-    source: path
+      path: sqleto_annotation
+      ref: master
+      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
+      url: "https://github.com/tihrasguinho/sqleto.git"
+    source: git
     version: "1.0.0"
   sqleto_generator:
     dependency: "direct dev"
     description:
       path: sqleto_generator
-      ref: HEAD
-      resolved-ref: fbd945f19c151d175f31868be66d640b407c7874
+      ref: master
+      resolved-ref: a5b377a826f1709ef6b85098a6324d326e1de331
       url: "https://github.com/tihrasguinho/sqleto.git"
     source: git
     version: "1.0.0"
