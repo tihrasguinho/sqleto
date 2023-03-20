@@ -10,13 +10,13 @@ abstract class UserEntity {
   @Column(type: SQLetoType.TEXT)
   final String name;
 
-  @Column(type: SQLetoType.TEXT, unique: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.usernameValidator, unique: true)
   final String username;
 
-  @Column(type: SQLetoType.TEXT, unique: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.emailValidator, unique: true)
   final String email;
 
-  @Column(type: SQLetoType.TEXT, password: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.emptyValidator, password: true)
   final String password;
 
   @Column(type: SQLetoType.TEXT, nullable: true)

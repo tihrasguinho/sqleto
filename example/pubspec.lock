@@ -444,27 +444,25 @@ packages:
   sqleto:
     dependency: "direct main"
     description:
-      name: sqleto
-      sha256: cae02d52e697de722c932c57913ebdf47a9141b7fb28f4a1e1c6c6a3b845a6bb
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.1"
+      path: "../sqleto"
+      relative: true
+    source: path
+    version: "0.0.2"
   sqleto_annotation:
     dependency: transitive
     description:
       name: sqleto_annotation
-      sha256: "10a6d3f2cc135b21cc144b0e0124fb5a029dc7a849a17316addd92afee47a0c7"
+      sha256: "6421883f733b2abce93d9bc8dbdc52df2d15bdbcd6438310377e7e141c936b7b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1"
+    version: "0.0.3"
   sqleto_generator:
     dependency: "direct dev"
     description:
-      name: sqleto_generator
-      sha256: eed077038be067c7e05645b7f66853e0a358e40a68ad54dd537c89d470863e1c
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.1"
+      path: "../sqleto_generator"
+      relative: true
+    source: path
+    version: "0.0.2"
   stack_trace:
     dependency: transitive
     description:
