@@ -63,7 +63,7 @@ class SQLeto {
   /// ```
   Future<T> insert<T extends Schema>(Schema Function() schema) async {
     try {
-      final query = SQLetoSchemaUtils.buildINSERT(schema().runtimeType);
+      final query = SQLetoSchemaUtils.buildINSERT(schema);
 
       final substitutionValues = SQLetoSchemaUtils.invokeToMap(schema);
 

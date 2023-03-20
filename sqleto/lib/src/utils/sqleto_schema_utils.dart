@@ -74,22 +74,61 @@ class SQLetoSchemaUtils {
     return builder.join(' ');
   }
 
-  static String buildINSERT(Type T) {
-    if (!isValidSchema(T)) throw InvalidSchemaException('Its given class does not extends from Schema!');
+  static String buildINSERT(Schema Function() schema) {
+    final type = schema().runtimeType;
+
+    if (!isValidSchema(type)) throw InvalidSchemaException('Its given class does not extends from Schema!');
 
     final builder = <String>[];
 
     builder.add('INSERT INTO');
 
-    builder.add(tableName(T).toUpperCase());
+    builder.add(tableName(type).toUpperCase());
 
-    final cm = reflectClass(T);
+    final im = reflect(schema());
+
+    final cm = im.type;
 
     final base = cm.superclass!.typeArguments.first as ClassMirror;
 
     final vms = base.declarations.values.whereType<VariableMirror>().toList();
 
     final requiredVms = vms.where((e) => _getColumnAnnotation(e).getField(#defaultValue).reflectee == null);
+
+    if (requiredVms.any((e) => _getColumnAnnotation(e).getField(#validator).reflectee != null)) {
+      final withValidator = vms.where((e) => _getColumnAnnotation(e).getField(#validator).reflectee != null).toList();
+
+      for (final vm in withValidator) {
+        final validator = _getColumnAnnotation(vm).getField(#validator).reflectee as SQLetoValidator;
+
+        switch (validator) {
+          case SQLetoValidator.emailValidator:
+            {
+              final regex = RegExp(validator.command);
+              final value = im.getField(vm.simpleName).reflectee;
+              if (!regex.hasMatch(value)) {
+                throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as email but the value given is not an email!');
+              }
+              break;
+            }
+          case SQLetoValidator.usernameValidator:
+            {
+              final regex = RegExp(validator.command);
+              final value = im.getField(vm.simpleName).reflectee;
+              if (!regex.hasMatch(value)) {
+                throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as username, only letters, numbers and _ are allowed, max 24 characters!');
+              }
+              break;
+            }
+          case SQLetoValidator.emptyValidator:
+            final value = im.getField(vm.simpleName).reflectee as String;
+            if (value.isEmpty) {
+              throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< cannot be empty!');
+            }
+            break;
+        }
+      }
+    }
 
     builder.add('(${requiredVms.map((e) => _camelCaseToSnakeCase(e.simpleName.name).toUpperCase()).join(', ')})');
 
@@ -102,9 +141,9 @@ class SQLetoSchemaUtils {
 
   static String _buildReferenceFieldName(VariableMirror vm) {
     if (_getColumnAnnotation(vm).getField(#password).reflectee == true) {
-      return "crypt(@${vm.simpleName.name}, gen_salt('bf', 4))";
+      return "crypt(@${_camelCaseToSnakeCase(vm.simpleName.name)}, gen_salt('bf', 4))";
     } else {
-      return '@${vm.simpleName.name}';
+      return '@${_camelCaseToSnakeCase(vm.simpleName.name)}';
     }
   }
 
