@@ -15,3 +15,7 @@
 
 - SQLetoValidatores refactored
 - SQLDefaultValue refactored
+
+## 0.0.4+1
+
+- Bug fixes

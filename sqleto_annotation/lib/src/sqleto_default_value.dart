@@ -4,7 +4,7 @@ enum SQLetoDefaultValue {
   /// Defines a boolean as true!
   FALSE,
 
-  /// Defines a boolean as false!
+  /// Defines a boolean as true!
   TRUE,
 
   /// Defines a text as empty!
