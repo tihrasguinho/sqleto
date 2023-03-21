@@ -10,22 +10,22 @@ abstract class UserEntity {
   @Column(type: SQLetoType.TEXT)
   final String name;
 
-  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.usernameValidator, unique: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.USERNAME, unique: true)
   final String username;
 
-  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.emailValidator, unique: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.EMAIL, unique: true)
   final String email;
 
-  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.emptyValidator, password: true)
+  @Column(type: SQLetoType.TEXT, validator: SQLetoValidator.EMPTY_TEXT, password: true)
   final String password;
 
   @Column(type: SQLetoType.TEXT, nullable: true)
   final String image;
 
-  @Column(type: SQLetoType.TIMESTAMPTZ, defaultValue: SQLetoDefaultValue.TIMESTAMP_NOW)
+  @Column(type: SQLetoType.TIMESTAMPTZ, defaultValue: SQLetoDefaultValue.NOW)
   final DateTime createdAt;
 
-  @Column(type: SQLetoType.TIMESTAMPTZ, defaultValue: SQLetoDefaultValue.TIMESTAMP_NOW)
+  @Column(type: SQLetoType.TIMESTAMPTZ, defaultValue: SQLetoDefaultValue.NOW)
   final DateTime updatedAt;
 
   UserEntity({

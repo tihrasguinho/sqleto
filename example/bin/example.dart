@@ -19,7 +19,7 @@ void main() async {
     final user = await createUser(
       () => UserEntitySchema.create(
         name: 'John Doe',
-        username: 'john',
+        username: 'johndoe',
         email: 'johndoe@gmail.com',
         password: '123456',
         image: '',

@@ -447,15 +447,15 @@ packages:
       path: "../sqleto"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.3"
   sqleto_annotation:
     dependency: transitive
     description:
       name: sqleto_annotation
-      sha256: "6421883f733b2abce93d9bc8dbdc52df2d15bdbcd6438310377e7e141c936b7b"
+      sha256: "2cd91a467f70ba5f6021b8668b5053696aded52a065905f5b22bf6ec3f27913d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.3"
+    version: "0.0.4+1"
   sqleto_generator:
     dependency: "direct dev"
     description:
