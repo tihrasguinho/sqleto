@@ -11,3 +11,9 @@
 - Bug fixes on generate scrit to INSERT
 - SQLetoValidator added (more validators soon)
 - Added an example.dart that will be updated when new features coming
+
+## 0.0.4
+
+- SQLetoValidator refactored
+- SQLetoDefaultValue refactored
+- SQLetoValidator added NEGATIVE_NUMBER and UUID validators

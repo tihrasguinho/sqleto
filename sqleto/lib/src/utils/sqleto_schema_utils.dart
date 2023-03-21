@@ -102,30 +102,69 @@ class SQLetoSchemaUtils {
         final validator = _getColumnAnnotation(vm).getField(#validator).reflectee as SQLetoValidator;
 
         switch (validator) {
-          case SQLetoValidator.emailValidator:
+          case SQLetoValidator.EMAIL:
             {
-              final regex = RegExp(validator.command);
               final value = im.getField(vm.simpleName).reflectee;
+
+              if (value is! String) throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as email but is not a String/TEXT!');
+
+              final regex = RegExp(r"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$");
+
               if (!regex.hasMatch(value)) {
                 throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as email but the value given is not an email!');
               }
+
               break;
             }
-          case SQLetoValidator.usernameValidator:
+          case SQLetoValidator.USERNAME:
             {
-              final regex = RegExp(validator.command);
               final value = im.getField(vm.simpleName).reflectee;
+
+              if (value is! String) throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as username but is not a String/TEXT!');
+
+              final regex = RegExp(r"^[a-zA-Z0-9_]{5,24}$");
+
               if (!regex.hasMatch(value)) {
                 throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as username, only letters, numbers and _ are allowed, max 24 characters!');
               }
               break;
             }
-          case SQLetoValidator.emptyValidator:
-            final value = im.getField(vm.simpleName).reflectee as String;
-            if (value.isEmpty) {
-              throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< cannot be empty!');
+          case SQLetoValidator.EMPTY_TEXT:
+            {
+              final value = im.getField(vm.simpleName).reflectee;
+
+              if (value is! String) throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is not a String/TEXT!');
+
+              if (value.isEmpty) {
+                throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< cannot be empty!');
+              }
+              break;
             }
-            break;
+          case SQLetoValidator.NEGATIVE_NUMBER:
+            {
+              final value = im.getField(vm.simpleName).reflectee;
+
+              if (value is! num) throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is marked as not negative number but is not a number!');
+
+              if (value.isNegative) {
+                throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< cannot be negative!');
+              }
+              break;
+            }
+          case SQLetoValidator.UUID:
+            {
+              final value = im.getField(vm.simpleName).reflectee;
+
+              if (value is! String) throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is not a String/UUID!');
+
+              final regex = RegExp(r"^[0-9A-Za-z]{8}-[0-9A-Za-z]{4}-4[0-9A-Za-z]{3}-[89ABab][0-9A-Za-z]{3}-[0-9A-Za-z]{12}$");
+
+              if (!regex.hasMatch(value)) {
+                throw InvalidSchemaException('$type field >>${vm.simpleName.name.toUpperCase()}<< is not a valid UUID!');
+              }
+
+              break;
+            }
         }
       }
     }
@@ -209,9 +248,9 @@ class SQLetoSchemaUtils {
 
     if (unique) builder.add('UNIQUE');
 
-    final defaultValue = (instance.getField(#defaultValue).reflectee as SQLetoDefaultValue?)?.command;
+    final defaultValue = instance.getField(#defaultValue).reflectee as SQLetoDefaultValue?;
 
-    if (defaultValue != null) builder.add('DEFAULT $defaultValue');
+    if (defaultValue != null) builder.add('DEFAULT ${_enumToString(defaultValue)}');
 
     final references = instance.getField(#references).reflectee as Type?;
 
@@ -238,6 +277,23 @@ class SQLetoSchemaUtils {
     }
 
     return builder.join(' ');
+  }
+
+  static String _enumToString(SQLetoDefaultValue def) {
+    switch (def) {
+      case SQLetoDefaultValue.FALSE:
+        return 'FALSE';
+      case SQLetoDefaultValue.TRUE:
+        return 'TRUE';
+      case SQLetoDefaultValue.EMPTY:
+        return "''";
+      case SQLetoDefaultValue.ZERO:
+        return '0';
+      case SQLetoDefaultValue.NOW:
+        return 'NOW()';
+      case SQLetoDefaultValue.UUID_GENERATE_V4:
+        return 'UUID_GENERATE_V4()';
+    }
   }
 
   static dynamic invokeFromMap(Type T, Map<String, dynamic> map) {

@@ -18,10 +18,10 @@ abstract class PostEntity {
   @Column(type: SQLetoType.UUID, references: UserEntity)
   final String ownerId;
 
-  @Column(type: SQLetoType.TIMESTAMP, defaultValue: SQLetoDefaultValue.TIMESTAMP_NOW)
+  @Column(type: SQLetoType.TIMESTAMP, defaultValue: SQLetoDefaultValue.NOW)
   final DateTime createdAt;
 
-  @Column(type: SQLetoType.BOOLEAN, defaultValue: SQLetoDefaultValue.BOOLEAN_TRUE)
+  @Column(type: SQLetoType.BOOLEAN, defaultValue: SQLetoDefaultValue.TRUE)
   final bool active;
 
   PostEntity({
