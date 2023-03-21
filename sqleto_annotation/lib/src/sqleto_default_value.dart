@@ -1,13 +1,21 @@
 // ignore_for_file: constant_identifier_names
 
 enum SQLetoDefaultValue {
-  BOOLEAN_FALSE('FALSE'),
-  BOOLEAN_TRUE('TRUE'),
-  TEXT_EMPTY(''),
-  TIMESTAMP_NOW('NOW()'),
-  UUID_GENERATE_V4('UUID_GENERATE_V4()');
+  /// Defines a boolean as true!
+  FALSE,
 
-  final String command;
+  /// Defines a boolean as false!
+  TRUE,
 
-  const SQLetoDefaultValue(this.command);
+  /// Defines a text as empty!
+  EMPTY,
+
+  /// Defines a number as zero!
+  ZERO,
+
+  /// Defines a timestamp/timestamptz as now!
+  NOW,
+
+  /// Defines a generated uuid!
+  UUID_GENERATE_V4
 }

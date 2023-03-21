@@ -10,3 +10,8 @@
 
 - SQLetoValidators added
 - Classes organization changed
+
+## 0.0.4
+
+- SQLetoValidatores refactored
+- SQLDefaultValue refactored

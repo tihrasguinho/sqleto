@@ -1,9 +1,18 @@
+// ignore_for_file: constant_identifier_names
+
 enum SQLetoValidator {
-  emailValidator(r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"),
-  usernameValidator(r"^[a-zA-Z0-9_]{5,24}$"),
-  emptyValidator('');
+  /// Check if the given value is a valid email!
+  EMAIL,
 
-  final String command;
+  /// Check if the given value is a valid username! (letters, numbers and underscores with max 24 characteres)
+  USERNAME,
 
-  const SQLetoValidator(this.command);
+  /// Check if the given value is not empty!
+  EMPTY_TEXT,
+
+  /// Check if the given value is not a negative number!
+  NEGATIVE_NUMBER,
+
+  /// Check it the given value is a valid UUID
+  UUID
 }
