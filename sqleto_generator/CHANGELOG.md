@@ -5,3 +5,8 @@
 ## 0.0.2
 
 - Some few adjusts
+
+## 0.0.3
+
+- Generator class refactored
+- Does not need to add @Table annotation on classes to generate the Schema, extends SQLetoSchema instead!

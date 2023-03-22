@@ -1,15 +1,15 @@
 targets:
   $default:
     builders:
-      sqleto_generator:sqletoGenerator:
+      sqleto_generator:schemaBuilder:
         options:
           build_to:
             - lib/*
 
 builders:
-  sqletoGenerator:
+  schemaBuilder:
     import: "package:sqleto_generator/sqleto_generator.dart"
-    builder_factories: ["sqletoGenerator"]
+    builder_factories: ["schemaBuilder"]
     build_extensions: { ".dart": [".g.part"] }
     auto_apply: dependents
     build_to: cache
