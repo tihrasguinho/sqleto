@@ -14,3 +14,8 @@
 ## 0.0.3+1
 
 - depedencies version
+
+## 0.0.3+2
+
+- Bug fixes
+- Method fromPostgreSQLMap added on Schema generated file

@@ -85,7 +85,7 @@ class SchemaGenerator extends Generator {
 
     for (var field in fields) {
       if (field.type.toString() == 'DateTime') {
-        buffer.writeln("${field.displayName}: DateTime.fromMillisecondsSinceEpoch(map['${_snakeCaseNORMALIZER(field.displayName)}'] as int),");
+        buffer.writeln("${field.displayName}: DateTime.fromMillisecondsSinceEpoch(map['${_snakeCaseNORMALIZER(field.displayName)}'] ?? 0),");
       } else {
         buffer.writeln("${field.displayName}: map['${_snakeCaseNORMALIZER(field.displayName)}'] ?? ${_defaultValue(field.type)},");
       }
@@ -97,10 +97,28 @@ class SchemaGenerator extends Generator {
 
     buffer.writeln('');
 
+    buffer.writeln('static $schemaName fromPostgreSQLMap(Map<String, dynamic> map) {');
+
+    buffer.writeln('return $schemaName(');
+
+    for (var field in fields) {
+      buffer.writeln("${field.displayName}: map['tb_${className.toLowerCase()}']?['${_snakeCaseNORMALIZER(field.displayName)}'] ?? ${_defaultValue(field.type)},");
+    }
+
+    buffer.writeln(');');
+
+    buffer.writeln('}');
+
+    buffer.writeln('');
+
     buffer.writeln('Map<String, dynamic> toMap() => {');
 
     for (var field in fields) {
-      buffer.writeln("'${_snakeCaseNORMALIZER(field.displayName)}': ${field.displayName},");
+      if (field.type.toString() == 'DateTime') {
+        buffer.writeln("'${_snakeCaseNORMALIZER(field.displayName)}': ${field.displayName}.millisecondsSinceEpoch,");
+      } else {
+        buffer.writeln("'${_snakeCaseNORMALIZER(field.displayName)}': ${field.displayName},");
+      }
     }
 
     buffer.writeln('};');
