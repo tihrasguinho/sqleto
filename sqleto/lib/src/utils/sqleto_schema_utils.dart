@@ -6,8 +6,8 @@ class SQLetoSchemaUtils {
   SQLetoSchemaUtils._();
 
   static bool isValidSchema(Type T) {
-    final cm = reflectType(T);
-    return cm.isSubtypeOf(reflectType(Schema));
+    final cm = reflectClass(T);
+    return cm.isSubtypeOf(reflectClass(SQLetoSchema));
   }
 
   static String tableName(Type T) {
@@ -29,8 +29,8 @@ class SQLetoSchemaUtils {
 
     final vms = base.declarations.values.whereType<VariableMirror>().toList();
 
-    if (vms.any((e) => _getColumnAnnotation(e).getField(#primaryKey).reflectee == true)) {
-      return vms.firstWhere((e) => _getColumnAnnotation(e).getField(#primaryKey).reflectee == true).simpleName.name;
+    if (vms.any((e) => _instanceMirrorWithFieldAnnotation(e).getField(#primaryKey).reflectee == true)) {
+      return vms.firstWhere((e) => _instanceMirrorWithFieldAnnotation(e).getField(#primaryKey).reflectee == true).simpleName.name;
     } else {
       throw InvalidSchemaException('T schema $T does not have a primary key!');
     }
@@ -58,7 +58,7 @@ class SQLetoSchemaUtils {
     builder.add('UPDATE ${tableName(T).toUpperCase()} SET');
 
     for (var vm in vms) {
-      final im = _getColumnAnnotation(vm);
+      final im = _instanceMirrorWithFieldAnnotation(vm);
 
       if (im.getField(#defaultValue).reflectee == null) {
         setters.add('${vm.simpleName.name} = @${vm.simpleName.name}');
@@ -74,7 +74,7 @@ class SQLetoSchemaUtils {
     return builder.join(' ');
   }
 
-  static String buildINSERT(Schema Function() schema) {
+  static String buildINSERT(SQLetoSchema Function() schema) {
     final type = schema().runtimeType;
 
     if (!isValidSchema(type)) throw InvalidSchemaException('Its given class does not extends from Schema!');
@@ -89,17 +89,17 @@ class SQLetoSchemaUtils {
 
     final cm = im.type;
 
-    final base = cm.superclass!.typeArguments.first as ClassMirror;
+    final base = cm.superclass as ClassMirror;
 
     final vms = base.declarations.values.whereType<VariableMirror>().toList();
 
-    final requiredVms = vms.where((e) => _getColumnAnnotation(e).getField(#defaultValue).reflectee == null);
+    final requiredVms = vms.where((e) => _instanceMirrorWithFieldAnnotation(e).getField(#defaultValue).reflectee == null);
 
-    if (requiredVms.any((e) => _getColumnAnnotation(e).getField(#validator).reflectee != null)) {
-      final withValidator = vms.where((e) => _getColumnAnnotation(e).getField(#validator).reflectee != null).toList();
+    if (requiredVms.any((e) => _instanceMirrorWithFieldAnnotation(e).getField(#validator).reflectee != null)) {
+      final withValidator = vms.where((e) => _instanceMirrorWithFieldAnnotation(e).getField(#validator).reflectee != null).toList();
 
       for (final vm in withValidator) {
-        final validator = _getColumnAnnotation(vm).getField(#validator).reflectee as SQLetoValidator;
+        final validator = _instanceMirrorWithFieldAnnotation(vm).getField(#validator).reflectee as SQLetoValidator;
 
         switch (validator) {
           case SQLetoValidator.EMAIL:
@@ -169,7 +169,7 @@ class SQLetoSchemaUtils {
       }
     }
 
-    builder.add('(${requiredVms.map((e) => _camelCaseToSnakeCase(e.simpleName.name).toUpperCase()).join(', ')})');
+    builder.add('(${requiredVms.map((e) => _snakeCaseNORMALIZER(e.simpleName.name).toUpperCase()).join(', ')})');
 
     builder.add(' VALUES ');
 
@@ -179,10 +179,10 @@ class SQLetoSchemaUtils {
   }
 
   static String _buildReferenceFieldName(VariableMirror vm) {
-    if (_getColumnAnnotation(vm).getField(#password).reflectee == true) {
-      return "crypt(@${_camelCaseToSnakeCase(vm.simpleName.name)}, gen_salt('bf', 4))";
+    if (_instanceMirrorWithFieldAnnotation(vm).getField(#password).reflectee == true) {
+      return "crypt(@${_snakeCaseNORMALIZER(vm.simpleName.name)}, gen_salt('bf', 4))";
     } else {
-      return '@${_camelCaseToSnakeCase(vm.simpleName.name)}';
+      return '@${_snakeCaseNORMALIZER(vm.simpleName.name)}';
     }
   }
 
@@ -191,7 +191,7 @@ class SQLetoSchemaUtils {
 
     final cm = reflectClass(T);
 
-    final base = cm.superclass!.typeArguments.first as ClassMirror;
+    final base = cm.superclass as ClassMirror;
 
     final vms = base.declarations.values.whereType<VariableMirror>().toList();
 
@@ -203,7 +203,7 @@ class SQLetoSchemaUtils {
       final vm = vms[i];
       final comma = i + 1 == vms.length ? '' : ',';
 
-      if (_containsColumnAnnotation(vm)) {
+      if (_containsFieldAnnotation(vm)) {
         buffer.writeln('  ${_fieldBuild(vm)}$comma');
       }
     }
@@ -213,20 +213,20 @@ class SQLetoSchemaUtils {
     return buffer.toString();
   }
 
-  static bool _containsColumnAnnotation(VariableMirror vm) {
-    return vm.metadata.any((e) => e.type.simpleName == Symbol('Column'));
+  static bool _containsFieldAnnotation(VariableMirror vm) {
+    return vm.metadata.any((e) => e.type.simpleName == Symbol('Field'));
   }
 
-  static InstanceMirror _getColumnAnnotation(VariableMirror vm) {
-    return vm.metadata.firstWhere((e) => e.type.simpleName == Symbol('Column'));
+  static InstanceMirror _instanceMirrorWithFieldAnnotation(VariableMirror vm) {
+    return vm.metadata.firstWhere((e) => e.type.simpleName == Symbol('Field'));
   }
 
   static String _fieldBuild(VariableMirror vm) {
-    final instance = _getColumnAnnotation(vm);
+    final instance = _instanceMirrorWithFieldAnnotation(vm);
 
     final builder = <String>[];
 
-    final name = _camelCaseToSnakeCase(vm.simpleName.name).toUpperCase();
+    final name = _snakeCaseNORMALIZER(vm.simpleName.name).toUpperCase();
 
     builder.add(name);
 
@@ -257,7 +257,7 @@ class SQLetoSchemaUtils {
     if (references != null) {
       final cm = reflectClass(references);
 
-      final referenceTableName = cm.metadata.first.getField(#name).reflectee.toUpperCase();
+      final referenceTableName = 'tb_${_snakeCaseNORMALIZER(cm.simpleName.name)}'.toUpperCase();
 
       final vms = cm.declarations.values.whereType<VariableMirror>().toList();
 
@@ -306,7 +306,17 @@ class SQLetoSchemaUtils {
     }
   }
 
-  static Map<String, dynamic> invokeToMap(Schema Function() schema) {
+  static dynamic invokeFromPostgreSQLMap(Type T, Map<String, dynamic> map) {
+    final cm = reflectClass(T);
+
+    if (cm.declarations.containsKey(#fromPostgreSQLMap)) {
+      return cm.invoke(#fromPostgreSQLMap, [map]).reflectee;
+    } else {
+      throw InvalidSchemaException('Its schema does not have a "fromPostgreSQLMap" method!');
+    }
+  }
+
+  static Map<String, dynamic> invokeToMap(SQLetoSchema Function() schema) {
     final im = reflect(schema());
 
     final cm = im.type;
@@ -318,7 +328,7 @@ class SQLetoSchemaUtils {
     }
   }
 
-  static String _camelCaseToSnakeCase(String origin) {
+  static String _snakeCaseNORMALIZER(String origin) {
     RegExp exp = RegExp(r'(?<=[a-z])[A-Z]');
     return origin.replaceAllMapped(exp, (Match m) => ('_${m.group(0)}')).toLowerCase();
   }

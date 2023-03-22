@@ -25,8 +25,7 @@ import 'package:sqleto/sqleto.dart';
 
 part 'user.g.dart';
 
-@Table(name: 'tb_users')
-abstract class User {
+abstract class User extends SQLetoSchema {
   @Column(type: SQLetoType.UUID, defaultValue: SQLetoDefaultValue.UUID_GENERATE_V4)
   final String id;
 
@@ -36,7 +35,7 @@ abstract class User {
   @Column(type: SQLetoType.TEXT, password: true)
   final String password;
 
-  @Column(type: SQLetoType.TIMESTAMP, defaultValue: SQLetoDefaultValue.TIMESTAMP_NOW)
+  @Column(type: SQLetoType.TIMESTAMP, defaultValue: SQLetoDefaultValue.NOW)
   final DateTime createdAt;
 
   User({
@@ -52,7 +51,7 @@ Em seguida precisamos executar o comando do build_runner no shell!
 
 >dart run build_runner build --delete-conflicting-outputs
 
-Será gerado um arquivo para cada classe que foi marcada com a anotação @Table()
+Será gerado um arquivo para cada classe que extende da classe SQLetoSchema
 
 Nesse caso será gerado um arquivo user.g.dart
 
@@ -65,7 +64,7 @@ part of 'user.dart';
 // SQLetoGenerator
 // **************************************************************************
 
-class UserSchema extends Schema<User> {
+class UserSchema extends User {
   final String id;
   final String email;
   final String password;
@@ -95,7 +94,7 @@ class UserSchema extends Schema<User> {
       id: map['id'] ?? '',
       email: map['email'] ?? '',
       password: map['password'] ?? '',
-      createdAt: map['created_at'] ?? DateTime.now(),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
     );
   }
 

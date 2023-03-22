@@ -1,5 +1,5 @@
-class SQLUtils {
-  SQLUtils._();
+class SQLetoUtils {
+  SQLetoUtils._();
 
   static String createPGCryptoExtension() => 'CREATE EXTENSION IF NOT EXISTS pgcrypto';
 

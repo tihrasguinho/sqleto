@@ -1,7 +1,7 @@
 import 'package:sqleto/sqleto.dart';
 
-import 'entities/post_entity.dart';
-import 'entities/user_entity.dart';
+import 'entities/post.dart';
+import 'entities/user.dart';
 
 void main() async {
   try {
@@ -11,23 +11,25 @@ void main() async {
       database: 'postgres',
       username: 'postgres',
       password: 'postgres',
-      schemas: [UserEntitySchema, PostEntitySchema],
+      schemas: [UserSchema, PostSchema],
     );
 
     await SQLeto.initialize(config);
 
     final user = await createUser(
-      () => UserEntitySchema.create(
+      () => UserSchema.create(
         name: 'John Doe',
-        username: 'john',
+        username: 'johndoe',
         email: 'johndoe@gmail.com',
         password: '123456',
         image: '',
       ),
     );
 
+    print(user.toMap());
+
     final post = await createPost(
-      () => PostEntitySchema.create(
+      () => PostSchema.create(
         title: 'My first post',
         body: 'LOL',
         ownerId: user.uid,
@@ -43,31 +45,31 @@ void main() async {
 }
 
 // Insert post
-Future<PostEntitySchema> createPost(PostEntitySchema Function() post) async {
-  return await SQLeto.instance.insert<PostEntitySchema>(post);
+Future<PostSchema> createPost(PostSchema Function() post) async {
+  return await SQLeto.instance.insert<PostSchema>(post);
 }
 
 // Update post
-Future<PostEntitySchema> updatePost(PostEntitySchema Function() post) async {
-  return await SQLeto.instance.update<PostEntitySchema>(post);
+Future<PostSchema> updatePost(PostSchema Function() post) async {
+  return await SQLeto.instance.update<PostSchema>(post);
 }
 
 // Delete post
-Future<PostEntitySchema> deletePost(PostEntitySchema Function() post) async {
-  return await SQLeto.instance.delete<PostEntitySchema>(post);
+Future<PostSchema> deletePost(PostSchema Function() post) async {
+  return await SQLeto.instance.delete<PostSchema>(post);
 }
 
 // Insert user
-Future<UserEntitySchema> createUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.insert<UserEntitySchema>(user);
+Future<UserSchema> createUser(UserSchema Function() user) async {
+  return await SQLeto.instance.insert<UserSchema>(user);
 }
 
 // Update User
-Future<UserEntitySchema> updateUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.update<UserEntitySchema>(user);
+Future<UserSchema> updateUser(UserSchema Function() user) async {
+  return await SQLeto.instance.update<UserSchema>(user);
 }
 
 // Delete User
-Future<UserEntitySchema> deleteUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.delete<UserEntitySchema>(user);
+Future<UserSchema> deleteUser(UserSchema Function() user) async {
+  return await SQLeto.instance.delete<UserSchema>(user);
 }

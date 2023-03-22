@@ -1,8 +1,12 @@
 import 'package:postgres/postgres.dart';
 
-import 'package:sqleto/sqleto.dart';
+import 'package:sqleto_annotation/sqleto_annotation.dart';
 
-import 'utils/sql_utils.dart';
+import 'exceptions/sqleto_exception.dart';
+import 'interfaces/where.dart';
+import 'sqleto_config.dart';
+import 'utils/sqleto_schema_utils.dart';
+import 'utils/sqleto_utils.dart';
 
 class SQLeto {
   static final _instance = SQLeto._();
@@ -31,11 +35,11 @@ class SQLeto {
       await _instance._connection?.open();
 
       await _instance._connection?.transaction((connection) async {
-        await connection.query(SQLUtils.createUuidExtension());
+        await connection.query(SQLetoUtils.createUuidExtension());
 
-        await connection.query(SQLUtils.createPGCryptoExtension());
+        await connection.query(SQLetoUtils.createPGCryptoExtension());
 
-        await connection.query(SQLUtils.createAutoUpdateAt());
+        await connection.query(SQLetoUtils.createAutoUpdateAt());
 
         for (final schema in config.schemas) {
           await connection.query(SQLetoSchemaUtils.buildClassSCHEMA(schema));
@@ -61,7 +65,7 @@ class SQLeto {
   ///
   /// user = await SQLeto.instence.insert<UserSchema>(user);
   /// ```
-  Future<T> insert<T extends Schema>(Schema Function() schema) async {
+  Future<T> insert<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
     try {
       final query = SQLetoSchemaUtils.buildINSERT(schema);
 
@@ -71,7 +75,7 @@ class SQLeto {
 
       if (insert == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      return SQLetoSchemaUtils.invokeFromMap(T, insert.first[SQLetoSchemaUtils.tableName(T)]!);
+      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, insert.first);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -104,7 +108,7 @@ class SQLeto {
   ///
   /// List<UserSchema> users = await SQLeto.instance.select<UserSchema>(where);
   /// ```
-  Future<List<T>> select<T extends Schema>([Where? where]) async {
+  Future<List<T>> select<T extends SQLetoSchema>([Where? where]) async {
     try {
       final query = SQLetoSchemaUtils.buildSELECT(T, where?.whereScript());
 
@@ -112,7 +116,7 @@ class SQLeto {
 
       if (select == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      return select.map((e) => SQLetoSchemaUtils.invokeFromMap(T, e[SQLetoSchemaUtils.tableName(T)]!) as T).toList();
+      return select.map((e) => SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, e) as T).toList();
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -128,7 +132,7 @@ class SQLeto {
   /// ```dart
   /// UserSchema user = await SQLeto.instance.findByPK<UserSchema>('a_unique_primary_key');
   /// ```
-  Future<T> findByPK<T extends Schema>(dynamic primaryKey) async {
+  Future<T> findByPK<T extends SQLetoSchema>(dynamic primaryKey) async {
     try {
       final query = SQLetoSchemaUtils.buildSELECT(T);
 
@@ -140,7 +144,7 @@ class SQLeto {
 
       if (select.isEmpty) throw NotFoundException('No founded $T wich this PK: $primaryKey');
 
-      return SQLetoSchemaUtils.invokeFromMap(T, select.first[SQLetoSchemaUtils.tableName(T)]!);
+      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, select.first);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -169,7 +173,7 @@ class SQLeto {
   ///
   /// await user.save();
   /// ```
-  Future<T> update<T extends Schema>(Schema Function() schema) async {
+  Future<T> update<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
     try {
       final query = SQLetoSchemaUtils.buildUPDATE(T);
 
@@ -181,7 +185,7 @@ class SQLeto {
 
       if (update.isEmpty) throw NotFoundException('No $T found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(T)]} to update!');
 
-      return SQLetoSchemaUtils.invokeFromMap(T, update.first[SQLetoSchemaUtils.tableName(T)]!);
+      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, update.first);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -206,7 +210,7 @@ class SQLeto {
   /// ```dart
   /// await user.delete();
   /// ```
-  Future<T> delete<T extends Schema>(Schema Function() schema) async {
+  Future<T> delete<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
     try {
       final query = SQLetoSchemaUtils.buildDELETE(T);
 
@@ -218,7 +222,7 @@ class SQLeto {
 
       if (delete.isEmpty) throw NotFoundException('No $T found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(T)]} to delete!');
 
-      return SQLetoSchemaUtils.invokeFromMap(T, delete.first[SQLetoSchemaUtils.tableName(T)]!);
+      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, delete.first);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
