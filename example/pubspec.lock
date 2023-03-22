@@ -444,10 +444,9 @@ packages:
   sqleto:
     dependency: "direct main"
     description:
-      name: sqleto
-      sha256: "35422956b7d34de52555fc1e140cda70c21fc4b811e1d519adeaa2ac372615aa"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../sqleto"
+      relative: true
+    source: path
     version: "0.0.5"
   sqleto_annotation:
     dependency: transitive

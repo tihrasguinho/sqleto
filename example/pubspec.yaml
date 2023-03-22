@@ -7,7 +7,8 @@ environment:
   sdk: ">=2.19.4 <3.0.0"
 
 dependencies:
-  sqleto: ^0.0.5
+  sqleto:
+    path: ../sqleto/
 
 dev_dependencies:
   lints: ^2.0.0

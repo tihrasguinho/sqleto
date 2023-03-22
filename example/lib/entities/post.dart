@@ -20,7 +20,7 @@ abstract class Post extends SQLetoSchema {
   @Field(type: SQLetoType.TIMESTAMP, defaultValue: SQLetoDefaultValue.NOW)
   final DateTime createdAt;
 
-  @Field(type: SQLetoType.BOOLEAN, defaultValue: SQLetoDefaultValue.NOW)
+  @Field(type: SQLetoType.BOOLEAN, defaultValue: SQLetoDefaultValue.TRUE)
   final bool active;
 
   Post({
