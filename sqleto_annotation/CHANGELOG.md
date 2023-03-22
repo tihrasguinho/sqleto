@@ -19,3 +19,8 @@
 ## 0.0.4+1
 
 - Bug fixes
+
+## 0.0.4+2
+
+- Annotation changed from @Column to @Field
+- Model base SQLetoSchema added

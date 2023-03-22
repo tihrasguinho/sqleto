@@ -3,14 +3,8 @@ import 'package:sqleto_annotation/src/sqleto_validator.dart';
 import 'sqleto_default_value.dart';
 import 'sqleto_type.dart';
 
-class Table {
-  final String name;
-
-  const Table({required this.name});
-}
-
 /// Define it's variable as SQL field
-class Column {
+class Field {
   /// Define the SQL type of field
   final SQLetoType type;
 
@@ -35,7 +29,7 @@ class Column {
   /// Define if field is Password for hash
   final bool password;
 
-  const Column({
+  const Field({
     required this.type,
     this.defaultValue,
     this.references,
