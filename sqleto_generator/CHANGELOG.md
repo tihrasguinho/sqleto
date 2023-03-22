@@ -10,3 +10,7 @@
 
 - Generator class refactored
 - Does not need to add @Table annotation on classes to generate the Schema, extends SQLetoSchema instead!
+
+## 0.0.3+1
+
+- depedencies version
