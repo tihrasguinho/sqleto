@@ -24,3 +24,7 @@
 
 - Annotation changed from @Column to @Field
 - Model base SQLetoSchema added
+
+## 0.0.4+3
+
+- SQLetoSchema removed type argument!

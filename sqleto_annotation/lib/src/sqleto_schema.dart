@@ -1,4 +1,4 @@
-abstract class SQLetoSchema<T extends Object> {
+abstract class SQLetoSchema {
   /// Table name on database
   String get tableName;
 
