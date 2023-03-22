@@ -1,40 +1,44 @@
-import 'package:example/entities/post_entity.dart';
-import 'package:example/entities/user_entity.dart';
+import 'dart:mirrors';
+
+import 'package:example/entities/post.dart';
+import 'package:example/entities/user.dart';
 
 import 'package:sqleto/sqleto.dart';
 
 void main() async {
   try {
-    final config = SQLetoConfig(
-      host: 'host.docker.internal',
-      port: 5432,
-      database: 'postgres',
-      username: 'postgres',
-      password: 'postgres',
-      schemas: [UserEntitySchema, PostEntitySchema],
-    );
+    print(reflectClass(UserSchema).isSubclassOf(reflectClass(SQLetoSchema)));
 
-    await SQLeto.initialize(config);
+    // final config = SQLetoConfig(
+    //   host: 'host.docker.internal',
+    //   port: 5432,
+    //   database: 'postgres',
+    //   username: 'postgres',
+    //   password: 'postgres',
+    //   schemas: [UserSchema, PostSchema],
+    // );
 
-    final user = await createUser(
-      () => UserEntitySchema.create(
-        name: 'John Doe',
-        username: 'johndoe',
-        email: 'johndoe@gmail.com',
-        password: '123456',
-        image: '',
-      ),
-    );
+    // await SQLeto.initialize(config);
 
-    final post = await createPost(
-      () => PostEntitySchema.create(
-        title: 'My first post',
-        body: 'LOL',
-        ownerId: user.uid,
-      ),
-    );
+    // final user = await createUser(
+    //   () => UserSchema.create(
+    //     name: 'John Doe',
+    //     username: 'johndoe',
+    //     email: 'johndoe@gmail.com',
+    //     password: '123456',
+    //     image: '',
+    //   ),
+    // );
 
-    print(post.toMap());
+    // final post = await createPost(
+    //   () => PostSchema.create(
+    //     title: 'My first post',
+    //     body: 'LOL',
+    //     ownerId: user.uid,
+    //   ),
+    // );
+
+    // print(post.toMap());
   } on SQLetoException catch (e) {
     print(e.error);
   } on Exception catch (e) {
@@ -42,18 +46,18 @@ void main() async {
   }
 }
 
-Future<PostEntitySchema> createPost(PostEntitySchema Function() post) async {
-  return await SQLeto.instance.insert<PostEntitySchema>(post);
+Future<PostSchema> createPost(PostSchema Function() post) async {
+  return await SQLeto.instance.insert<PostSchema>(post);
 }
 
-Future<UserEntitySchema> createUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.insert<UserEntitySchema>(user);
+Future<UserSchema> createUser(UserSchema Function() user) async {
+  return await SQLeto.instance.insert<UserSchema>(user);
 }
 
-Future<UserEntitySchema> updateUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.update<UserEntitySchema>(user);
+Future<UserSchema> updateUser(UserSchema Function() user) async {
+  return await SQLeto.instance.update<UserSchema>(user);
 }
 
-Future<UserEntitySchema> deleteUser(UserEntitySchema Function() user) async {
-  return await SQLeto.instance.delete<UserEntitySchema>(user);
+Future<UserSchema> deleteUser(UserSchema Function() user) async {
+  return await SQLeto.instance.delete<UserSchema>(user);
 }
