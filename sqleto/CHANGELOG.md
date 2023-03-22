@@ -22,3 +22,8 @@
 
 - Class [Schema] removed, use [SQLetoSchema] instead!
 - Bug fixes
+
+## 0.0.5+1
+
+- Where adjustments
+- PostgreSQL queries adjustments

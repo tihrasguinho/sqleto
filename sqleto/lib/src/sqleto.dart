@@ -3,10 +3,10 @@ import 'package:postgres/postgres.dart';
 import 'package:sqleto_annotation/sqleto_annotation.dart';
 
 import 'exceptions/sqleto_exception.dart';
-import 'interfaces/where.dart';
 import 'sqleto_config.dart';
 import 'utils/sqleto_schema_utils.dart';
 import 'utils/sqleto_utils.dart';
+import 'where.dart';
 
 class SQLeto {
   static final _instance = SQLeto._();
@@ -97,14 +97,14 @@ class SQLeto {
   ///
   /// E.g.:
   /// ```dart
-  /// final where = Where('name', Op.equals, 'John Doe');
+  /// final where = Where('name', Operator.EQUALS, 'John Doe');
   /// ```
   /// If necessary you can merge multiple [Where]
   ///
   /// ```dart
-  /// where.and(Where('created_at', Op.lessThan, DateTime.now()));
+  /// where.and(Where('created_at', Operator.LESS_THAN, DateTime.now()));
   ///
-  /// where.or(Where('created_at', Op.moreThan, DateTime.now()));
+  /// where.or(Where('created_at', Operator.MORE_THAN, DateTime.now()));
   ///
   /// List<UserSchema> users = await SQLeto.instance.select<UserSchema>(where);
   /// ```
@@ -112,7 +112,7 @@ class SQLeto {
     try {
       final query = SQLetoSchemaUtils.buildSELECT(T, where?.whereScript());
 
-      final select = await _connection?.mappedResultsQuery(query, substitutionValues: where?.substitutionValues());
+      final select = await _connection?.mappedResultsQuery(query);
 
       if (select == null) throw DatabaseException('Fail to get the returning of this operation!');
 
