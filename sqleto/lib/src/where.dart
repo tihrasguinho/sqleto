@@ -20,8 +20,13 @@ class Where {
   }
 
   String whereScript() {
-    _params.insert(0, "$field ${operator.operator} '$value'");
+    if (!_params.contains("$field ${operator.operator} '$value'")) {
+      _params.insert(0, "$field ${operator.operator} '$value'");
+    }
 
     return ' WHERE ${_params.join(' ')}';
   }
+
+  @override
+  String toString() => whereScript();
 }

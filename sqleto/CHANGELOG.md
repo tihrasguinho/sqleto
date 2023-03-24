@@ -27,3 +27,8 @@
 
 - Where adjustments
 - PostgreSQL queries adjustments
+
+## 0.0.5+2
+
+- Bug fixes on Where class
+- Real time changes stream implemented (experimental under development)

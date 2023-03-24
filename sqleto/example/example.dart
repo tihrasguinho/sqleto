@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sqleto/sqleto.dart';
 
 import 'entities/post.dart';
@@ -8,14 +10,22 @@ void main() async {
     final config = SQLetoConfig(
       host: 'host.docker.internal',
       port: 5432,
-      database: 'postgres',
+      database: 'sqleto_first',
+      username: 'postgres',
+      password: 'postgres',
       schemas: [
         UserSchema,
         PostSchema,
       ],
     );
 
-    await SQLeto.initialize(config);
+    await SQLeto.initialize(config).then((value) => print('CONNECTADO'));
+
+    // On changed stream (Under development)
+
+    final usersStream = SQLeto.instance.onChanged<UserSchema>();
+
+    usersStream.listen((event) => print(event.length));
 
     // SELECT EXAMPLES --------------------------------------------
 
@@ -41,22 +51,20 @@ void main() async {
 
     final user = await SQLeto.instance.insert<UserSchema>(
       () => UserSchema.create(
-        name: 'John Doe',
-        username: 'johndoe',
-        email: 'john@gmail.com',
+        name: 'Tiago Alves',
+        username: 'tihrasguinho',
+        email: 'tiago@gmail.com',
         password: '123456',
         image: '',
       ),
     );
 
-    print(user.toMap());
-
     // Insert PostSchema with UserSchema reference
     final post = await SQLeto.instance.insert<PostSchema>(
       () => PostSchema.create(
-        title: 'My first post',
-        body: 'LOL',
-        ownerId: user.uid,
+        title: 'My second post',
+        body: 'LOL OMEGALUL',
+        ownerId: '6839c947-b6e8-4be4-8464-063460459e37',
       ),
     );
 
@@ -87,5 +95,15 @@ void main() async {
     print(e.error);
   } on Exception catch (e) {
     print(e);
+  }
+}
+
+Stream<List<T>> on<T extends SQLetoSchema>([Where? where]) async* {
+  while (true) {
+    final internalWhere = where;
+
+    yield await SQLeto.instance.select<T>(internalWhere);
+
+    await Future.delayed(Duration(seconds: 1));
   }
 }

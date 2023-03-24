@@ -1,17 +1,25 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:postgres/postgres.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'package:sqleto_annotation/sqleto_annotation.dart';
 
 import 'exceptions/sqleto_exception.dart';
 import 'sqleto_config.dart';
 import 'utils/sqleto_schema_utils.dart';
-import 'utils/sqleto_utils.dart';
+import 'utils/sqleto_sql_utils.dart';
 import 'where.dart';
 
 class SQLeto {
   static final _instance = SQLeto._();
 
+  Timer? _timeout;
+
   PostgreSQLConnection? _connection;
+
+  final BehaviorSubject<Type> _onChangedController = BehaviorSubject<Type>();
 
   SQLeto._();
 
@@ -34,15 +42,44 @@ class SQLeto {
 
       await _instance._connection?.open();
 
+      _instance._connection!.notifications.listen(
+        (event) {
+          if (event.channel == 'on_changed') {
+            final decoded = jsonDecode(event.payload) as Map<String, dynamic>;
+
+            if (config.schemas.any((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name'])) {
+              final schema = config.schemas.firstWhere((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name']);
+
+              if (_instance._onChangedController.hasListener) {
+                if (_instance._timeout?.isActive ?? false) _instance._timeout?.cancel();
+                _instance._timeout = Timer(Duration(seconds: 1), () => _instance._onChangedController.sink.add(schema));
+              }
+            }
+          }
+        },
+        onError: (err) {
+          print('### NOTIFICATIONS ERROR ###');
+          print(err);
+        },
+        onDone: () {
+          print('### NOTIFICATIONS DONE ###');
+        },
+      );
+
       await _instance._connection?.transaction((connection) async {
-        await connection.query(SQLetoUtils.createUuidExtension());
+        await connection.execute(SQLetoSQLUtils.createUuidExtension());
 
-        await connection.query(SQLetoUtils.createPGCryptoExtension());
+        await connection.execute(SQLetoSQLUtils.createPGCryptoExtension());
 
-        await connection.query(SQLetoUtils.createAutoUpdateAt());
+        await connection.execute(SQLetoSQLUtils.createAutoUpdateAt());
+
+        await connection.execute(SQLetoSQLUtils.createFunctionOnChanged());
+
+        await connection.execute(SQLetoSQLUtils.createListenOnChanged());
 
         for (final schema in config.schemas) {
-          await connection.query(SQLetoSchemaUtils.buildClassSCHEMA(schema));
+          await connection.execute(SQLetoSchemaUtils.buildClassSCHEMA(schema));
+          await connection.execute(SQLetoSQLUtils.createTriggerOnChangedOnTable(SQLetoSchemaUtils.tableName(schema)));
         }
       });
 
@@ -53,6 +90,17 @@ class SQLeto {
       throw DatabaseException(e.message ?? 'Unhandled Postgres Exception!');
     } on Exception catch (e) {
       throw DatabaseException(e.toString());
+    }
+  }
+
+  /// Stream of [T] from database, its trigger is when insert or update!
+  Stream<List<T>> onChanged<T extends SQLetoSchema>([Where? where]) => _onChangedController.stream.switchMap((e) => _onChangedSwithMap(e, where));
+
+  Stream<List<T>> _onChangedSwithMap<T extends SQLetoSchema>(Type schema, [Where? where]) async* {
+    if (schema == T) {
+      final values = await select<T>(where);
+
+      if (values.isNotEmpty) yield values;
     }
   }
 
@@ -75,7 +123,9 @@ class SQLeto {
 
       if (insert == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, insert.first);
+      final insertedSchema = SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, insert.first);
+
+      return insertedSchema;
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -231,4 +281,6 @@ class SQLeto {
       throw DatabaseException(e.toString());
     }
   }
+
+  void dispose() {}
 }
