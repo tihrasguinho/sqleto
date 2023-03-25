@@ -18,6 +18,19 @@ class UserSchema extends User {
     required super.updatedAt,
   });
 
+  factory UserSchema.empty() {
+    return UserSchema(
+      uid: '',
+      name: '',
+      username: '',
+      email: '',
+      password: '',
+      image: '',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
   factory UserSchema.create({
     required String name,
     required String username,
@@ -47,19 +60,6 @@ class UserSchema extends User {
       image: map['image'] ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] ?? 0),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] ?? 0),
-    );
-  }
-
-  static UserSchema fromPostgreSQLMap(Map<String, dynamic> map) {
-    return UserSchema(
-      uid: map['tb_user']?['uid'] ?? '',
-      name: map['tb_user']?['name'] ?? '',
-      username: map['tb_user']?['username'] ?? '',
-      email: map['tb_user']?['email'] ?? '',
-      password: map['tb_user']?['password'] ?? '',
-      image: map['tb_user']?['image'] ?? '',
-      createdAt: map['tb_user']?['created_at'] ?? DateTime.now(),
-      updatedAt: map['tb_user']?['updated_at'] ?? DateTime.now(),
     );
   }
 

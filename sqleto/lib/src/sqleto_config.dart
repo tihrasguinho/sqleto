@@ -1,3 +1,5 @@
+import 'package:sqleto/sqleto.dart';
+
 class SQLetoConfig {
   final String host;
   final int port;
@@ -5,7 +7,7 @@ class SQLetoConfig {
   final String? username;
   final String? password;
   final bool useSSL;
-  final List<Type> schemas;
+  final List<SQLetoSchema Function()> schemas;
 
   SQLetoConfig({
     required this.host,

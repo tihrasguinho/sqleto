@@ -1,90 +1,147 @@
-import 'dart:async';
-
 import 'package:sqleto/sqleto.dart';
 
 import 'entities/post.dart';
 import 'entities/user.dart';
 
-void main() async {
+void mainInsert() async {
   try {
     final config = SQLetoConfig(
       host: 'host.docker.internal',
       port: 5432,
-      database: 'sqleto_first',
+      database: 'postgres',
       username: 'postgres',
       password: 'postgres',
       schemas: [
-        UserSchema,
-        PostSchema,
+        () => UserSchema.empty(),
+        () => PostSchema.empty(),
       ],
     );
 
-    await SQLeto.initialize(config).then((value) => print('CONNECTADO'));
+    await SQLeto.initialize(config);
 
-    // On changed stream (Under development)
-
-    final usersStream = SQLeto.instance.onChanged<UserSchema>();
-
-    usersStream.listen((event) => print(event.length));
-
-    // SELECT EXAMPLES --------------------------------------------
-
-    List<PostSchema> posts = [];
-
-    // Get all [PostSchema] from database!
-    posts = await SQLeto.instance.select<PostSchema>();
-
-    // Or with where to apply filters
-    final where = Where('owner_id', Operator.EQUALS, '82184366-ea63-441a-9cf6-a3646299f16c');
-
-    // Select posts by owner_id
-    posts = await SQLeto.instance.select<PostSchema>(where);
-
-    final whereByDate = Where('created_at', Operator.LESS_OR_EQUAL, DateTime.parse('2023-03-22 20:00:52.166887'));
-
-    // Select posts merging two or more [Where]'s (active = true and created_at <= Date)
-    posts = await SQLeto.instance.select<PostSchema>(Where('active', Operator.EQUALS, true)..and(whereByDate));
-
-    print(posts);
-
-    // INSERT EXAMPLES --------------------------------------------
-
+    // Insert a single record
     final user = await SQLeto.instance.insert<UserSchema>(
       () => UserSchema.create(
-        name: 'Tiago Alves',
-        username: 'tihrasguinho',
-        email: 'tiago@gmail.com',
+        name: 'John Doe',
+        username: 'johndoe',
+        email: 'johndoe@gmail.com',
         password: '123456',
         image: '',
       ),
     );
 
-    // Insert PostSchema with UserSchema reference
+    print(user.toMap());
+
+    // Insert with foreignKey reference
     final post = await SQLeto.instance.insert<PostSchema>(
       () => PostSchema.create(
         title: 'My second post',
         body: 'LOL OMEGALUL',
-        ownerId: '6839c947-b6e8-4be4-8464-063460459e37',
+        ownerId: user.uid,
       ),
     );
 
     print(post.toMap());
+  } on SQLetoException catch (e) {
+    print(e.error);
+  } on Exception catch (e) {
+    print(e);
+  }
+}
 
-    // UPDATE EXAMPLES --------------------------------------------
+void mainSelect() async {
+  try {
+    final config = SQLetoConfig(
+      host: 'host.docker.internal',
+      port: 5432,
+      database: 'postgres',
+      username: 'postgres',
+      password: 'postgres',
+      schemas: [
+        () => UserSchema.empty(),
+        () => PostSchema.empty(),
+      ],
+    );
 
-    final updated1 = await SQLeto.instance.update<UserSchema>(() => user.copyWith(name: 'John Doe Edited'));
+    await SQLeto.initialize(config);
 
-    print(updated1.toMap());
+    List<UserSchema> users = [];
+
+    // All
+    users = await SQLeto.instance.select<UserSchema>();
+
+    // With [Where] filters
+    users = await SQLeto.instance.select<UserSchema>(Where('username', Operator.I_LIKE, 'john%'));
+
+    print(users.map((e) => e.toMap()).toList());
+
+    // By primary key
+    final user = await SQLeto.instance.findByPK<UserSchema>('a6e29ec6-fb82-4945-9b65-de9ef03f0e35');
+
+    print(user.toMap());
+
+    // You can also listen when table changes in real time and with [Where] filters
+    final stream = SQLeto.instance.onChanged<UserSchema>();
+
+    stream.listen((event) => print(event.map((e) => e.toMap()).toList()));
+  } on SQLetoException catch (e) {
+    print(e.error);
+  } on Exception catch (e) {
+    print(e);
+  }
+}
+
+void mainUpdate() async {
+  try {
+    final config = SQLetoConfig(
+      host: 'host.docker.internal',
+      port: 5432,
+      database: 'postgres',
+      username: 'postgres',
+      password: 'postgres',
+      schemas: [
+        () => UserSchema.empty(),
+        () => PostSchema.empty(),
+      ],
+    );
+
+    await SQLeto.initialize(config);
+
+    UserSchema user = await SQLeto.instance.findByPK<UserSchema>('843092cf-8981-4388-b739-fe3d2a3a04b0');
+
+    user = user.copyWith(name: 'John Doe Edited');
+
+    await SQLeto.instance.update<UserSchema>(() => user);
 
     // Or
 
-    final updated2 = user.copyWith(name: 'John Doe Edited');
+    await user.save();
 
-    await updated2.save();
+    print(user.toMap());
+  } on SQLetoException catch (e) {
+    print(e.error);
+  } on Exception catch (e) {
+    print(e);
+  }
+}
 
-    print(updated2.toMap());
+void mainDelete() async {
+  try {
+    final config = SQLetoConfig(
+      host: 'host.docker.internal',
+      port: 5432,
+      database: 'postgres',
+      username: 'postgres',
+      password: 'postgres',
+      schemas: [
+        () => UserSchema.empty(),
+        () => PostSchema.empty(),
+      ],
+    );
 
-    // DELETE EXAMPLES --------------------------------------------
+    await SQLeto.initialize(config);
+
+    UserSchema user = await SQLeto.instance.findByPK<UserSchema>('843092cf-8981-4388-b739-fe3d2a3a04b0');
 
     await SQLeto.instance.delete<UserSchema>(() => user);
 
@@ -95,15 +152,5 @@ void main() async {
     print(e.error);
   } on Exception catch (e) {
     print(e);
-  }
-}
-
-Stream<List<T>> on<T extends SQLetoSchema>([Where? where]) async* {
-  while (true) {
-    final internalWhere = where;
-
-    yield await SQLeto.instance.select<T>(internalWhere);
-
-    await Future.delayed(Duration(seconds: 1));
   }
 }

@@ -1,6 +1,6 @@
 name: sqleto
 description: A ORM-ish for use with PostgreSQL
-version: 0.0.5+2
+version: 0.0.5+3
 homepage: https://tihrasguinho.dev
 repository: https://github.com/tihrasguinho/sqleto.git
 
@@ -11,7 +11,9 @@ dependencies:
   sqleto_annotation: ^0.0.4+3
   postgres: ">=2.0.0 <3.0.0"
   rxdart: ">=0.27.0 <1.0.0"
+  crypto: ">=3.0.2 <4.0.0"
 
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.0
+  faker: ^2.1.0

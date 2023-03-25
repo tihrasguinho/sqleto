@@ -17,6 +17,14 @@ class DatabaseException extends SQLetoException {
   DatabaseException(super.error, [super.stackTrace]);
 }
 
+class DatabaseConflictException extends SQLetoException {
+  DatabaseConflictException(super.error, [super.stackTrace]);
+}
+
+class DatabaseForeignKeyExcenption extends SQLetoException {
+  DatabaseForeignKeyExcenption(super.error, [super.stackTrace]);
+}
+
 class InvalidSchemaException extends SQLetoException {
   InvalidSchemaException(super.error, [super.stackTrace]);
 }

@@ -15,11 +15,15 @@ import 'where.dart';
 class SQLeto {
   static final _instance = SQLeto._();
 
+  final BehaviorSubject<SQLetoSchema Function()> _onChangedController = BehaviorSubject<SQLetoSchema Function()>();
+
   Timer? _timeout;
 
   PostgreSQLConnection? _connection;
 
-  final BehaviorSubject<Type> _onChangedController = BehaviorSubject<Type>();
+  SQLetoConfig? _config;
+
+  SQLetoConfig get config => _config!;
 
   SQLeto._();
 
@@ -27,7 +31,9 @@ class SQLeto {
 
   static Future<SQLeto> initialize(SQLetoConfig config) async {
     try {
-      for (final schema in config.schemas) {
+      _instance._config = config;
+
+      for (final schema in _instance._config!.schemas) {
         if (!SQLetoSchemaUtils.isValidSchema(schema)) throw InvalidSchemaException('Its schema $schema does not extends Schema!');
       }
 
@@ -42,29 +48,7 @@ class SQLeto {
 
       await _instance._connection?.open();
 
-      _instance._connection!.notifications.listen(
-        (event) {
-          if (event.channel == 'on_changed') {
-            final decoded = jsonDecode(event.payload) as Map<String, dynamic>;
-
-            if (config.schemas.any((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name'])) {
-              final schema = config.schemas.firstWhere((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name']);
-
-              if (_instance._onChangedController.hasListener) {
-                if (_instance._timeout?.isActive ?? false) _instance._timeout?.cancel();
-                _instance._timeout = Timer(Duration(seconds: 1), () => _instance._onChangedController.sink.add(schema));
-              }
-            }
-          }
-        },
-        onError: (err) {
-          print('### NOTIFICATIONS ERROR ###');
-          print(err);
-        },
-        onDone: () {
-          print('### NOTIFICATIONS DONE ###');
-        },
-      );
+      _instance._connection!.notifications.listen((event) => _onChanged(event, config.schemas));
 
       await _instance._connection?.transaction((connection) async {
         await connection.execute(SQLetoSQLUtils.createUuidExtension());
@@ -96,8 +80,8 @@ class SQLeto {
   /// Stream of [T] from database, its trigger is when insert or update!
   Stream<List<T>> onChanged<T extends SQLetoSchema>([Where? where]) => _onChangedController.stream.switchMap((e) => _onChangedSwithMap(e, where));
 
-  Stream<List<T>> _onChangedSwithMap<T extends SQLetoSchema>(Type schema, [Where? where]) async* {
-    if (schema == T) {
+  Stream<List<T>> _onChangedSwithMap<T extends SQLetoSchema>(Object Function() object, [Where? where]) async* {
+    if (SQLetoSchemaUtils.isValidSchema(object) && config.schemas.contains(object)) {
       final values = await select<T>(where);
 
       if (values.isNotEmpty) yield values;
@@ -113,22 +97,28 @@ class SQLeto {
   ///
   /// user = await SQLeto.instence.insert<UserSchema>(user);
   /// ```
-  Future<T> insert<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
+  Future<T> insert<T extends SQLetoSchema>(Object Function() object) async {
     try {
-      final query = SQLetoSchemaUtils.buildINSERT(schema);
+      if (!_containsSchema<T>()) throw GenericException('$T is not registered on SQLetoSchema list!');
 
-      final substitutionValues = SQLetoSchemaUtils.invokeToMap(schema);
+      final query = SQLetoSchemaUtils.buildINSERT(object);
+
+      final substitutionValues = SQLetoSchemaUtils.invokeToMap(object);
 
       final insert = await _connection?.mappedResultsQuery(query, substitutionValues: substitutionValues);
 
       if (insert == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      final insertedSchema = SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, insert.first);
+      final insertedSchema = SQLetoSchemaUtils.invokeFromMap(object, insert.first[SQLetoSchemaUtils.tableName(object)]!);
 
       return insertedSchema;
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
+      if (e.code == '23505') throw DatabaseConflictException(e.message ?? 'Unhandled Postgres Exception!');
+
+      if (e.code == '23503') throw DatabaseForeignKeyExcenption(e.message ?? 'Unhandled Postgres Exception!');
+
       throw DatabaseException(e.message ?? 'Unhandled Postgres Exception!');
     } on Exception catch (e) {
       throw DatabaseException(e.toString());
@@ -160,16 +150,22 @@ class SQLeto {
   /// ```
   Future<List<T>> select<T extends SQLetoSchema>([Where? where]) async {
     try {
-      final query = SQLetoSchemaUtils.buildSELECT(T, where?.whereScript());
+      if (!_containsSchema<T>()) throw GenericException('$T is not registered on SQLetoSchema list!');
+
+      final object = _getSchema<T>();
+
+      final query = SQLetoSchemaUtils.buildSELECT(object, where?.whereScript());
 
       final select = await _connection?.mappedResultsQuery(query);
 
       if (select == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      return select.map((e) => SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, e) as T).toList();
+      return select.map((e) => SQLetoSchemaUtils.invokeFromMap(object, e[SQLetoSchemaUtils.tableName(object)]!) as T).toList();
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
+      print(e.detail);
+
       throw DatabaseException(e.message ?? 'Unhandled Postgres Exception!');
     } on Exception catch (e) {
       throw DatabaseException(e.toString());
@@ -184,20 +180,26 @@ class SQLeto {
   /// ```
   Future<T> findByPK<T extends SQLetoSchema>(dynamic primaryKey) async {
     try {
-      final query = SQLetoSchemaUtils.buildSELECT(T);
+      if (!_containsSchema<T>()) throw GenericException('$T is not registered on SQLetoSchema list!');
 
-      final pkName = SQLetoSchemaUtils.getPKName(T);
+      final object = _getSchema<T>();
+
+      final query = SQLetoSchemaUtils.buildSELECT(object);
+
+      final pkName = SQLetoSchemaUtils.getPKName(object);
 
       final select = await _connection?.mappedResultsQuery('$query WHERE $pkName = @$pkName', substitutionValues: {pkName: primaryKey});
 
       if (select == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      if (select.isEmpty) throw NotFoundException('No founded $T wich this PK: $primaryKey');
+      if (select.isEmpty) throw NotFoundException('No founded ${object.runtimeType} wich this PK: $primaryKey');
 
-      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, select.first);
+      return SQLetoSchemaUtils.invokeFromMap(object, select.first[SQLetoSchemaUtils.tableName(object)]!);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
+      print(e.toString());
+
       throw DatabaseException(e.message ?? 'Unhandled Postgres Exception!');
     } on Exception catch (e) {
       throw DatabaseException(e.toString());
@@ -223,19 +225,21 @@ class SQLeto {
   ///
   /// await user.save();
   /// ```
-  Future<T> update<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
+  Future<T> update<T extends SQLetoSchema>(SQLetoSchema Function() object) async {
     try {
-      final query = SQLetoSchemaUtils.buildUPDATE(T);
+      if (!_containsSchema<T>()) throw GenericException('${object.runtimeType} is not registered on SQLetoSchema list!');
 
-      final substitutionValues = SQLetoSchemaUtils.invokeToMap(schema);
+      final query = SQLetoSchemaUtils.buildUPDATE(object);
+
+      final substitutionValues = SQLetoSchemaUtils.invokeToMap(object);
 
       final update = await _connection?.mappedResultsQuery(query, substitutionValues: substitutionValues);
 
       if (update == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      if (update.isEmpty) throw NotFoundException('No $T found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(T)]} to update!');
+      if (update.isEmpty) throw NotFoundException('No ${object.runtimeType} found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(object)]} to update!');
 
-      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, update.first);
+      return SQLetoSchemaUtils.invokeFromMap(object, update.first[SQLetoSchemaUtils.tableName(object)]!);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -260,19 +264,21 @@ class SQLeto {
   /// ```dart
   /// await user.delete();
   /// ```
-  Future<T> delete<T extends SQLetoSchema>(SQLetoSchema Function() schema) async {
+  Future<T> delete<T extends SQLetoSchema>(Object Function() object) async {
     try {
-      final query = SQLetoSchemaUtils.buildDELETE(T);
+      if (!_containsSchema<T>()) throw GenericException('$T is not registered on SQLetoSchema list!');
 
-      final substitutionValues = SQLetoSchemaUtils.invokeToMap(schema);
+      final query = SQLetoSchemaUtils.buildDELETE(object);
+
+      final substitutionValues = SQLetoSchemaUtils.invokeToMap(object);
 
       final delete = await _connection?.mappedResultsQuery(query, substitutionValues: substitutionValues);
 
       if (delete == null) throw DatabaseException('Fail to get the returning of this operation!');
 
-      if (delete.isEmpty) throw NotFoundException('No $T found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(T)]} to delete!');
+      if (delete.isEmpty) throw NotFoundException('No ${object.runtimeType} found with PK: ${substitutionValues[SQLetoSchemaUtils.getPKName(object)]} to delete!');
 
-      return SQLetoSchemaUtils.invokeFromPostgreSQLMap(T, delete.first);
+      return SQLetoSchemaUtils.invokeFromMap(object, delete.first[SQLetoSchemaUtils.tableName(object)]!);
     } on SQLetoException {
       rethrow;
     } on PostgreSQLException catch (e) {
@@ -283,4 +289,23 @@ class SQLeto {
   }
 
   void dispose() {}
+
+  static bool _containsSchema<T extends Object>() => _instance._config!.schemas.any((e) => e().runtimeType == T);
+
+  static Object Function() _getSchema<T extends Object>() => _instance._config!.schemas.firstWhere((e) => e().runtimeType == T);
+
+  static void _onChanged(dynamic event, List<SQLetoSchema Function()> schemas) {
+    if (event.channel == 'on_changed') {
+      final decoded = jsonDecode(event.payload) as Map<String, dynamic>;
+
+      if (schemas.any((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name'])) {
+        final schema = schemas.firstWhere((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name']);
+
+        if (_instance._onChangedController.hasListener) {
+          if (_instance._timeout?.isActive ?? false) _instance._timeout?.cancel();
+          _instance._timeout = Timer(Duration(seconds: 1), () => _instance._onChangedController.sink.add(schema));
+        }
+      }
+    }
+  }
 }

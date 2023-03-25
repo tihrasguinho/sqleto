@@ -47,7 +47,7 @@ abstract class User extends SQLetoSchema {
 }
 ```
 
-Em seguida precisamos executar o comando do build_runner no shell!
+Em seguida precisamos executar o comando do build_runner no terminal!
 
 >dart run build_runner build --delete-conflicting-outputs
 
@@ -77,6 +77,15 @@ class UserSchema extends User {
     required this.createdAt,
   });
 
+  factory UserSchema.empty() {
+    return UserSchema._(
+      id: '',
+      email: '',
+      password: '',
+      createdAt: DateTime.now(),
+    );
+  }
+
   factory UserSchema.create({
     required String email,
     required String password,
@@ -94,7 +103,7 @@ class UserSchema extends User {
       id: map['id'] ?? '',
       email: map['email'] ?? '',
       password: map['password'] ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] ?? 0),
     );
   }
 
@@ -118,7 +127,7 @@ class UserSchema extends User {
   }
 
   @override
-  String get tableName => 'tb_users';
+  String get tableName => 'tb_user';
 
   @override
   Future<void> save() => SQLeto.instance.update<UserSchema>(() => this);

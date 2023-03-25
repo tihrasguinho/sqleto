@@ -32,3 +32,9 @@
 
 - Bug fixes on Where class
 - Real time changes stream implemented (experimental under development)
+
+## 0.0.5+3
+
+- Initialization adjustment
+- New exceptions
+- SQLetoUtils.passwordMatches method to check encrypted password from database with the password given!

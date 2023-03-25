@@ -16,6 +16,17 @@ class PostSchema extends Post {
     required super.active,
   });
 
+  factory PostSchema.empty() {
+    return PostSchema(
+      uid: '',
+      title: '',
+      body: '',
+      ownerId: '',
+      createdAt: DateTime.now(),
+      active: false,
+    );
+  }
+
   factory PostSchema.create({
     required String title,
     required String body,
@@ -39,17 +50,6 @@ class PostSchema extends Post {
       ownerId: map['owner_id'] ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] ?? 0),
       active: map['active'] ?? false,
-    );
-  }
-
-  static PostSchema fromPostgreSQLMap(Map<String, dynamic> map) {
-    return PostSchema(
-      uid: map['tb_post']?['uid'] ?? '',
-      title: map['tb_post']?['title'] ?? '',
-      body: map['tb_post']?['body'] ?? '',
-      ownerId: map['tb_post']?['owner_id'] ?? '',
-      createdAt: map['tb_post']?['created_at'] ?? DateTime.now(),
-      active: map['tb_post']?['active'] ?? false,
     );
   }
 
