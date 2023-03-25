@@ -36,7 +36,6 @@ class SchemaGenerator extends Generator {
 
     buffer.writeln('class $schemaName extends $className {');
 
-    // WRITE CONSTRUCTOR
     buffer.writeln('$schemaName({');
 
     for (var field in fields) {
@@ -44,6 +43,14 @@ class SchemaGenerator extends Generator {
     }
 
     buffer.writeln('});');
+
+    buffer.writeln('');
+
+    buffer.writeln('factory $schemaName.empty() {');
+
+    buffer.writeln('return $schemaName(${fields.map((e) => '${e.displayName}:  ${_defaultValue(e.type)}').join(', ')},);');
+
+    buffer.writeln('}');
 
     buffer.writeln('');
 
@@ -89,20 +96,6 @@ class SchemaGenerator extends Generator {
       } else {
         buffer.writeln("${field.displayName}: map['${_snakeCaseNORMALIZER(field.displayName)}'] ?? ${_defaultValue(field.type)},");
       }
-    }
-
-    buffer.writeln(');');
-
-    buffer.writeln('}');
-
-    buffer.writeln('');
-
-    buffer.writeln('static $schemaName fromPostgreSQLMap(Map<String, dynamic> map) {');
-
-    buffer.writeln('return $schemaName(');
-
-    for (var field in fields) {
-      buffer.writeln("${field.displayName}: map['tb_${className.toLowerCase()}']?['${_snakeCaseNORMALIZER(field.displayName)}'] ?? ${_defaultValue(field.type)},");
     }
 
     buffer.writeln(');');

@@ -19,3 +19,8 @@
 
 - Bug fixes
 - Method fromPostgreSQLMap added on Schema generated file
+
+## 0.0.3+3
+
+- fromPostgreSQLMap method removed.
+- SQLetoShema.empty factory created for use on initialization of SQLeto package!
