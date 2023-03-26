@@ -152,6 +152,30 @@ class SchemaGenerator extends Generator {
 
     buffer.writeln('@override');
 
+    buffer.writeln('bool operator==(covariant $className other) {');
+
+    buffer.writeln('if (identical(this, other)) return true;');
+
+    buffer.writeln('');
+
+    buffer.writeln('return ${fields.map((e) => 'other.${e.displayName} == ${e.displayName}').join(' && ')};');
+
+    buffer.writeln('}');
+
+    buffer.writeln('');
+
+    buffer.writeln('@override');
+
+    buffer.writeln('int get hashCode {');
+
+    buffer.writeln('return ${fields.map((e) => '${e.displayName}.hashCode').join(' ^ ')};');
+
+    buffer.writeln('}');
+
+    buffer.writeln('');
+
+    buffer.writeln('@override');
+
     buffer.writeln('Future<void> save() => SQLeto.instance.update<$schemaName>(() => this);');
 
     buffer.writeln('');

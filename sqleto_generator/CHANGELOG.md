@@ -28,3 +28,7 @@
 ## 0.0.3+4
 
 - Table name bug fixed!
+
+## 0.0.3+5
+
+- Equality methods added on generated class
