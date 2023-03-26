@@ -17,8 +17,6 @@ class SQLeto {
 
   final BehaviorSubject<SQLetoSchema Function()> _onChangedController = BehaviorSubject<SQLetoSchema Function()>();
 
-  Timer? _timeout;
-
   PostgreSQLConnection? _connection;
 
   SQLetoConfig? _config;
@@ -48,7 +46,17 @@ class SQLeto {
 
       await _instance._connection?.open();
 
-      _instance._connection!.notifications.listen((event) => _onChanged(event, config.schemas));
+      _instance._connection!.notifications.listen((event) {
+        if (event.channel == 'on_changed') {
+          final decoded = jsonDecode(event.payload);
+
+          if (config.schemas.any((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name'])) {
+            final schema = config.schemas.firstWhere((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name']);
+
+            if (_instance._onChangedController.hasListener) _instance._onChangedController.sink.add(schema);
+          }
+        }
+      });
 
       await _instance._connection?.transaction((connection) async {
         await connection.execute(SQLetoSQLUtils.createUuidExtension());
@@ -293,19 +301,4 @@ class SQLeto {
   static bool _containsSchema<T extends Object>() => _instance._config!.schemas.any((e) => e().runtimeType == T);
 
   static Object Function() _getSchema<T extends Object>() => _instance._config!.schemas.firstWhere((e) => e().runtimeType == T);
-
-  static void _onChanged(dynamic event, List<SQLetoSchema Function()> schemas) {
-    if (event.channel == 'on_changed') {
-      final decoded = jsonDecode(event.payload) as Map<String, dynamic>;
-
-      if (schemas.any((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name'])) {
-        final schema = schemas.firstWhere((e) => SQLetoSchemaUtils.tableName(e) == decoded['table_name']);
-
-        if (_instance._onChangedController.hasListener) {
-          if (_instance._timeout?.isActive ?? false) _instance._timeout?.cancel();
-          _instance._timeout = Timer(Duration(seconds: 1), () => _instance._onChangedController.sink.add(schema));
-        }
-      }
-    }
-  }
 }

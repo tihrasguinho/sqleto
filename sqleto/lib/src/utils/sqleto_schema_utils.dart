@@ -304,8 +304,12 @@ class SQLetoSchemaUtils {
       final vms = im.type.superclass!.declarations.values.whereType<VariableMirror>().toList();
 
       for (var vm in vms) {
-        if (vm.type.simpleName.name == 'DateTime' && map.containsKey(_snakeCaseNORMALIZER(vm.simpleName.name))) {
+        if (vm.type.simpleName.name == 'DateTime' && map[_snakeCaseNORMALIZER(vm.simpleName.name)] is DateTime) {
           map.update(_snakeCaseNORMALIZER(vm.simpleName.name), (value) => (value as DateTime).millisecondsSinceEpoch);
+        } else if (vm.type.simpleName.name == 'DateTime' && map[_snakeCaseNORMALIZER(vm.simpleName.name)] is double) {
+          map.update(_snakeCaseNORMALIZER(vm.simpleName.name), (value) => (value as double).toInt() * 1000);
+        } else if (vm.type.simpleName.name == 'DateTime' && map[_snakeCaseNORMALIZER(vm.simpleName.name)] is String) {
+          map.update(_snakeCaseNORMALIZER(vm.simpleName.name), (value) => DateTime.parse(value).millisecondsSinceEpoch);
         }
       }
 

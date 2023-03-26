@@ -28,7 +28,7 @@ CREATE TRIGGER ON_UPDATE_${tableName.toUpperCase()}
 CREATE OR REPLACE FUNCTION FUNCTION_ON_CHANGED()
 RETURNS TRIGGER AS $$
 BEGIN
-  PERFORM PG_NOTIFY('on_changed', '{"table_name":"'||TG_TABLE_NAME||'","operation":"'||TG_OP||'","current_time":"'||to_char(now(),'HH24:MI:SS')||'"}');
+  PERFORM PG_NOTIFY('on_changed', '{"table_name":"'||TG_TABLE_NAME||'","operation":"'||TG_OP||'"}');
   RETURN NEW;
 END;
 $$ LANGUAGE 'plpgsql';

@@ -42,3 +42,8 @@
 ## 0.0.5+4
 
 - Table builder script bug fixed!
+
+## 0.0.5+5
+
+- OnChanged stream adjustments
+- SQLetoSchema builder adjustments
