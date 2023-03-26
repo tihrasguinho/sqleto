@@ -24,3 +24,7 @@
 
 - fromPostgreSQLMap method removed.
 - SQLetoShema.empty factory created for use on initialization of SQLeto package!
+
+## 0.0.3+4
+
+- Table name bug fixed!

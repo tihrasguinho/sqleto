@@ -164,7 +164,7 @@ class SchemaGenerator extends Generator {
 
     buffer.writeln('@override');
 
-    buffer.writeln("String get tableName => 'tb_${className.toLowerCase()}';");
+    buffer.writeln("String get tableName => 'tb_${_snakeCaseNORMALIZER(className).toLowerCase()}';");
 
     buffer.writeln('');
 
