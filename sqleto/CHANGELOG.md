@@ -47,3 +47,7 @@
 
 - OnChanged stream adjustments
 - SQLetoSchema builder adjustments
+
+## 0.0.5+6
+
+- OnChanged stream distinct applied

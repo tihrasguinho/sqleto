@@ -86,14 +86,14 @@ class SQLeto {
   }
 
   /// Stream of [T] from database, its trigger is when insert or update!
-  Stream<List<T>> onChanged<T extends SQLetoSchema>([Where? where]) => _onChangedController.stream.switchMap((e) => _onChangedSwithMap(e, where));
+  Stream<List<T>> onChanged<T extends SQLetoSchema>([Where? where]) {
+    return _onChangedController.stream.switchMap((e) async* {
+      if (SQLetoSchemaUtils.isValidSchema(e) && config.schemas.contains(e)) {
+        final values = await select<T>(where);
 
-  Stream<List<T>> _onChangedSwithMap<T extends SQLetoSchema>(Object Function() object, [Where? where]) async* {
-    if (SQLetoSchemaUtils.isValidSchema(object) && config.schemas.contains(object)) {
-      final values = await select<T>(where);
-
-      if (values.isNotEmpty) yield values;
-    }
+        if (values.isNotEmpty) yield values;
+      }
+    }).distinct((prev, next) => _isListEquals(prev, next));
   }
 
   /// Insert a schema [T] on database
@@ -296,9 +296,22 @@ class SQLeto {
     }
   }
 
-  void dispose() {}
-
   static bool _containsSchema<T extends Object>() => _instance._config!.schemas.any((e) => e().runtimeType == T);
 
   static Object Function() _getSchema<T extends Object>() => _instance._config!.schemas.firstWhere((e) => e().runtimeType == T);
+
+  static bool _isListEquals<T extends SQLetoSchema>(List<T> first, List<T> second) {
+    if (first.length != second.length) return false;
+
+    for (var i = 0; i < first.length; i++) {
+      if (first[i] != second[i]) return false;
+    }
+
+    return true;
+  }
+
+  void dispose() async {
+    _onChangedController.close();
+    await _connection?.close();
+  }
 }
