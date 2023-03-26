@@ -190,7 +190,7 @@ class SQLetoSchemaUtils {
   static String buildClassSCHEMA(Object Function() object) {
     if (!isValidSchema(object)) throw InvalidSchemaException('Its given class does not extends from Schema!');
 
-    final im = reflect(object);
+    final im = reflect(object());
 
     final base = im.type.superclass as ClassMirror;
 

@@ -38,3 +38,7 @@
 - Initialization adjustment
 - New exceptions
 - SQLetoUtils.passwordMatches method to check encrypted password from database with the password given!
+
+## 0.0.5+4
+
+- Table builder script bug fixed!

@@ -1,6 +1,6 @@
 name: sqleto
 description: A ORM-ish for use with PostgreSQL
-version: 0.0.5+3
+version: 0.0.5+4
 homepage: https://tihrasguinho.dev
 repository: https://github.com/tihrasguinho/sqleto.git
 
